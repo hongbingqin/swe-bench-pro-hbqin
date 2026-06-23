@@ -1,0 +1,24 @@
+{
+  "repo": "promplate/partial-json-parser",
+  "instance_id": "aai_promplate__partial-json-parser-dda8aa18114c7d97d35b6e554bbaf98f9a03f0d5",
+  "base_commit": "dda8aa18114c7d97d35b6e554bbaf98f9a03f0d5",
+  "patch": "diff --git a/src/partial_json_parser/core/myelin.py b/src/partial_json_parser/core/myelin.py\nindex 963867c..69bcd82 100644\n--- a/src/partial_json_parser/core/myelin.py\n+++ b/src/partial_json_parser/core/myelin.py\n@@ -120,7 +120,7 @@ def fix_fast(json_string: str, allow_partial: Union[Allow, int] = ALL):\n             # { \"k\n             return json_string[: stack[-1][0] + 1], join_closing_tokens(stack)\n \n-        last_comma = json_string.rfind(\",\", max(stack[-1][0], last_string_end) + 1, last_string_start - 1)\n+        last_comma = json_string.rfind(\",\", max(stack[-1][0], last_string_end) + 1, last_string_start)\n         if last_comma != -1:\n             # { \"key\": \"v\", \"k\n             # { \"key\": 123, \"k\n",
+  "test_patch": "diff --git a/tests/test_examples.py b/tests/test_examples.py\nindex 15ad9eb..1fcd02e 100644\n--- a/tests/test_examples.py\n+++ b/tests/test_examples.py\n@@ -1,17 +1,17 @@\n from itertools import accumulate\n from json import dumps\n from math import isnan\n \n from hypothesis import given, settings\n from hypothesis.strategies import integers\n-from pytest import mark, raises\n+from pytest import raises\n from test_hypotheses import json\n \n from partial_json_parser import *\n from partial_json_parser.core.options import *\n \n \n def test_str():\n     assert parse_json('\"', STR) == \"\"\n     with raises(PartialJSON):\n         parse_json('\"', ~STR)\n@@ -99,21 +99,20 @@ def test_fix():\n     assert fix(\"[\") == fix_fast(\"[\") == (\"[\", \"]\")\n     assert fix(\"[0.\") == fix_fast(\"[0.\") == (\"[0\", \"]\")\n     assert fix('{\"key\": ') == fix_fast('{\"key\": ') == (\"{\", \"}\")\n     assert fix(\"t\") == fix_fast(\"t\") == (\"\", \"true\")\n     assert fix(\"[1\", ~NUM) == fix_fast(\"[1\", ~NUM) == (\"[\", \"]\")\n     assert fix(\"1\", ~NUM) == fix_fast(\"1\", ~NUM) == (\"1\", \"\")\n     with raises(PartialJSON):\n         fix(\"-\")\n \n \n-@mark.xfail()\n def test_fix_fast():\n     assert fix_fast('[\"a\", \"b', ~STR) == ('[\"a\"', \"]\")\n     assert fix_fast('[\"a\",\"b', ~STR) == ('[\"a\"', \"]\")\n     assert fix_fast('[\"a\" ,\"b', ~STR) == ('[\"a\" ', \"]\")\n \n \n def consistent(json_string, allow):\n     try:\n         res = fix(json_string, allow)\n         return res == fix_fast(json_string, allow)\n",
+  "fail_to_pass": [
+    "tests/test_examples.py::test_fix_fast"
+  ],
+  "pass_to_pass": [
+    "tests/test_examples.py::test_str",
+    "tests/test_examples.py::test_arr",
+    "tests/test_examples.py::test_obj",
+    "tests/test_examples.py::test_singletons",
+    "tests/test_examples.py::test_num",
+    "tests/test_examples.py::test_error",
+    "tests/test_examples.py::test_fix",
+    "tests/test_examples.py::test_consistency"
+  ],
+  "selected_test_files_to_run": [
+    "tests/test_examples.py"
+  ],
+  "before_repo_set_cmd": "git reset --hard dda8aa18114c7d97d35b6e554bbaf98f9a03f0d5\ngit clean -fd"
+}
