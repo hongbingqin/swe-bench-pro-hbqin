@@ -1,1 +1,1 @@
-Create a class called transformer.  Add transformer model as an option for training using the same data like RNNModel. Currently it only has RNNModel.
+Add a Transformer-based model as an additional training option, using the same data pipeline and training flow as the existing RNN model. The implementation should integrate cleanly with the current codebase (including model selection and training interfaces) and clearly document any architectural expectations and required hyperparameters.
