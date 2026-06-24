@@ -6,7 +6,7 @@ cd /app 2>/dev/null || cd /testbed 2>/dev/null
 
 cat > solution_patch.diff << '__SOLUTION__'
 diff --git a/examples/word_language_model/model.py b/examples/word_language_model/model.py
-index 39ab269..d5cc1d8 100644
+index 39ab269..deb1bd1 100644
 --- a/examples/word_language_model/model.py
 +++ b/examples/word_language_model/model.py
 @@ -1,3 +1,6 @@
@@ -16,53 +16,29 @@ index 39ab269..d5cc1d8 100644
  import torch.nn as nn
  from torch.autograd import Variable
  
-@@ -56,3 +59,77 @@ class RNNModel(nn.Module):
+@@ -56,3 +59,69 @@ class RNNModel(nn.Module):
                      Variable(weight.new(self.nlayers, bsz, self.nhid).zero_()))
          else:
              return Variable(weight.new(self.nlayers, bsz, self.nhid).zero_())
-+
-+
-+class PositionalEncoding(nn.Module):
-+    """Inject information about the relative or absolute position of the tokens.
-+
-+    The positional encodings have the same dimension as the embeddings so that
-+    the two can be summed. Here we use sine and cosine functions of different
-+    frequencies.
-+    """
-+
-+    def __init__(self, d_model, dropout=0.1, max_len=5000):
-+        super(PositionalEncoding, self).__init__()
-+        self.dropout = nn.Dropout(p=dropout)
-+
-+        pe = torch.zeros(max_len, d_model)
-+        position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
-+        div_term = torch.exp(
-+            torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
-+        pe[:, 0::2] = torch.sin(position * div_term)
-+        pe[:, 1::2] = torch.cos(position * div_term)
-+        pe = pe.unsqueeze(0).transpose(0, 1)
-+        self.register_buffer('pe', pe)
-+
-+    def forward(self, x):
-+        # x has shape (seq, batch, d_model)
-+        x = x + self.pe[:x.size(0), :]
-+        return self.dropout(x)
 +
 +
 +class TransformerModel(nn.Module):
 +    """Container module with an encoder, a transformer module, and a decoder.
 +
 +    Unlike ``RNNModel`` this module has no hidden state: ``forward`` takes only
-+    the input sequence and returns the logits.
++    the input sequence and returns the logits. Positional information is
++    injected via ALiBi (Attention with Linear Biases) rather than sinusoidal
++    positional embeddings: a per-head, distance-dependent linear bias is added
++    to the attention scores (combined with causal masking) so no explicit
++    positional encoding is summed into the token embeddings.
 +    """
 +
 +    def __init__(self, ntoken, ninp, nhid, nlayers, nhead, dropout=0.5):
 +        super(TransformerModel, self).__init__()
 +        self.model_type = 'Transformer'
 +        self.ninp = ninp
-+        self.src_mask = None
++        self.nhead = nhead
 +
-+        self.pos_encoder = PositionalEncoding(ninp, dropout)
 +        encoder_layers = nn.TransformerEncoderLayer(ninp, nhead, nhid, dropout)
 +        self.transformer_encoder = nn.TransformerEncoder(encoder_layers, nlayers)
 +        self.encoder = nn.Embedding(ntoken, ninp)
@@ -70,11 +46,24 @@ index 39ab269..d5cc1d8 100644
 +
 +        self.init_weights()
 +
-+    def _generate_square_subsequent_mask(self, sz):
-+        mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-+        mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(
-+            mask == 1, float(0.0))
-+        return mask
++    def _alibi_slopes(self, device):
++        # Standard ALiBi geometric slopes: slope_h = 2 ** (-(8 / nhead) * (h+1)).
++        return torch.tensor(
++            [2 ** (-(8.0 / self.nhead) * (h + 1)) for h in range(self.nhead)],
++            dtype=torch.float, device=device)
++
++    def _alibi_mask(self, sz, device):
++        # Build the ALiBi + causal float bias of shape (nhead, sz, sz).
++        # bias[h, i, j] = -slope_h * (i - j) for j <= i, and -inf for j > i.
++        slopes = self._alibi_slopes(device)
++        pos = torch.arange(sz, device=device, dtype=torch.float)
++        # distance[i, j] = i - j
++        distance = pos.unsqueeze(1) - pos.unsqueeze(0)
++        bias = -slopes.view(self.nhead, 1, 1) * distance.unsqueeze(0)
++        causal = torch.triu(
++            torch.ones(sz, sz, device=device, dtype=torch.bool), diagonal=1)
++        bias = bias.masked_fill(causal.unsqueeze(0), float('-inf'))
++        return bias
 +
 +    def init_weights(self):
 +        initrange = 0.1
@@ -84,14 +73,17 @@ index 39ab269..d5cc1d8 100644
 +
 +    def forward(self, input):
 +        # input has shape (seq, batch); returns logits (seq, batch, ntoken).
-+        if self.src_mask is None or self.src_mask.size(0) != input.size(0):
-+            device = input.device
-+            mask = self._generate_square_subsequent_mask(input.size(0)).to(device)
-+            self.src_mask = mask
++        seq_len = input.size(0)
++        batch_size = input.size(1)
++
++        # ALiBi: per-head linear distance bias + causal mask, expanded to the
++        # (batch * nhead, S, S) float attn_mask that MultiheadAttention adds to
++        # the attention scores.
++        bias = self._alibi_mask(seq_len, input.device)
++        mask = bias.repeat(batch_size, 1, 1)
 +
 +        emb = self.encoder(input) * math.sqrt(self.ninp)
-+        emb = self.pos_encoder(emb)
-+        output = self.transformer_encoder(emb, self.src_mask)
++        output = self.transformer_encoder(emb, mask)
 +        decoded = self.decoder(output)
 +        return decoded
 diff --git a/examples/word_language_model/net.py b/examples/word_language_model/net.py
