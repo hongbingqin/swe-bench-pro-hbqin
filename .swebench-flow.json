@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "current_step": 4,
+  "started_at": "2026-06-23T17:20:00Z",
+  "last_updated": "2026-06-23T18:05:00Z",
+
+  "answers": {
+    "problem_type": "New feature",
+    "repo_url": "https://github.com/skorch-dev/skorch",
+    "base_commit_choice": "HEAD",
+    "base_commit_hash": "e769a2b89dc6e946dfaf42654184aa01b7025964"
+  },
+
+  "repo_url": "https://github.com/skorch-dev/skorch",
+  "repo_name": "skorch",
+  "base_commit": "e769a2b89dc6e946dfaf42654184aa01b7025964",
+  "language": "python",
+  "task_dir": "skorch-wlm-transformer",
+
+  "docker_built": true,
+  "instruction_written": true,
+  "solution_committed": false,
+  "tests_committed": false,
+  "qa_passed": false,
+  "models_tested": [],
+  "submitted": false,
+  "validation_passed": false,
+  "validation_attempts": 0,
+  "last_failure_phase": "",
+
+  "notes": "First trial task. instruction.md is intentionally thin (one line: add transformer + LSTM option to word_language_model training; only RNNModel exists) - user accepts likely 0/5/ambiguity risk for the learning run. NOTE: LSTM already supported via RNNModel rnn_type='LSTM'; genuinely-new piece is Transformer. Step 4 next: build reference solution under user's direction (selection mechanism + interface). Dockerfile/config/canary/casing all set; gap verified (model.py only RNNModel at base e769a2b)."
+}

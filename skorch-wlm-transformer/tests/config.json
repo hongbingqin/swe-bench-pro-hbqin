@@ -1,0 +1,11 @@
+{
+  "repo": "skorch-dev/skorch",
+  "instance_id": "aai_skorch-dev__skorch-e769a2b89dc6e946dfaf42654184aa01b7025964",
+  "base_commit": "e769a2b89dc6e946dfaf42654184aa01b7025964",
+  "patch": "PENDING_PATCH_GEN",
+  "test_patch": "PENDING_PATCH_GEN",
+  "fail_to_pass": [],
+  "pass_to_pass": [],
+  "selected_test_files_to_run": [],
+  "before_repo_set_cmd": "git reset --hard e769a2b89dc6e946dfaf42654184aa01b7025964\ngit clean -fd"
+}
