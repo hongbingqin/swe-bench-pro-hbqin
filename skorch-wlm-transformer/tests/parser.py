@@ -58,8 +58,8 @@ def parse_test_output(stdout_content: str, stderr_content: str) -> List[TestResu
     results = []
     combined_content = stdout_content + "\n" + stderr_content
 
-    # Match pytest verbose output: tests/test_file.py::test_name PASSED/FAILED/etc.
-    pattern = r'(tests/[^\s]+::[^\s]+)\s+(PASSED|FAILED|SKIPPED|ERROR|XFAIL|XPASS)'
+    # Match pytest verbose output: path/test_file.py::test_name PASSED/FAILED/etc.
+    pattern = r'([^\s]+\.py::[^\s]+)\s+(PASSED|FAILED|SKIPPED|ERROR|XFAIL|XPASS)'
 
     for match in re.finditer(pattern, combined_content):
         test_name = match.group(1)
