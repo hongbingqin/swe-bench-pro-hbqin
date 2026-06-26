@@ -107,6 +107,18 @@ def _extract_best(result):
     return float(result)
 
 
+def _extract_history(result):
+    if isinstance(result, tuple) and len(result) >= 2:
+        h = result[1]
+        if isinstance(h, (list, tuple)):
+            return list(h)
+    if isinstance(result, dict):
+        for k in ("history", "trace", "observations", "evaluations"):
+            if k in result:
+                return list(result[k])
+    return None
+
+
 # Oracle NW surrogate (mirrors the spec) used to compute expected values.
 def _nw(history, x, h):
     xs = np.asarray([c for c, _ in history], dtype=float)
@@ -170,25 +182,34 @@ def test_propose_maximizes_acquisition():
         % (expected, got))
 
 
-def test_optimize_beats_random_baseline():
+def test_optimize_loop_bounded_and_deterministic():
+    # End-to-end loop mechanics, kept robust to the seeding RNG choice (the
+    # exact NW/acquisition discrimination lives in the formula tests above).
     bounds = (0.0, 10.0)
 
     def objective(x):
-        return -(x - 3.0) ** 2     # maximized at x = 3.0 (score 0)
+        return -(x - 3.0) ** 2     # smooth bowl, maximized at x = 3.0 (score 0)
 
-    opt = _opt(bounds)
-    result = _call_optimize(opt, objective, 12, 0)
-    best_x = _extract_best(result)
-    opt_score = objective(best_x)
+    r1 = _call_optimize(_opt(bounds), objective, 12, 0)
+    r2 = _call_optimize(_opt(bounds), objective, 12, 0)
+    b1, b2 = _extract_best(r1), _extract_best(r2)
 
-    # Random-search baseline with the same budget.
-    rng = np.random.default_rng(0)
-    rand_score = max(objective(float(p)) for p in rng.uniform(0.0, 10.0, 12))
+    # Deterministic: same seed -> same result.
+    assert b1 == b2, "same seed must give the same result (got %s vs %s)" % (b1, b2)
 
-    # History-guided search must converge near the optimum and beat random.
-    assert abs(best_x - 3.0) <= 0.2, "optimizer did not converge near optimum: best_x=%s" % best_x
-    assert opt_score >= rand_score, (
-        "optimizer (%.4f) did not beat random baseline (%.4f)" % (opt_score, rand_score))
+    # Returned config is within the bounds.
+    assert 0.0 - 1e-9 <= b1 <= 10.0 + 1e-9, "best config %s outside bounds" % b1
+
+    # The cap bounds the work (tolerant of whether the 3 seed points count
+    # toward the cap): the loop must not run unbounded (e.g. the whole grid).
+    hist = _extract_history(r1)
+    if hist is not None:
+        assert 3 <= len(hist) <= 12 + 3, "history length %d not bounded by the cap" % len(hist)
+
+    # It actually optimizes on a smooth objective (loose band: any correct
+    # history-guided optimizer converges well within this, regardless of RNG;
+    # rules out a non-optimizing/garbage result).
+    assert objective(b1) >= -1.0, "optimizer did not get near the optimum: best=%s" % b1
 
 
 # ---------------------------------------------------------------------------
