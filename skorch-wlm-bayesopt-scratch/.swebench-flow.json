@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "current_step": 6,
+  "started_at": "2026-06-26T04:45:00Z",
+  "last_updated": "2026-06-26T05:20:00Z",
+
+  "answers": {
+    "problem_type": "New feature",
+    "repo_url": "https://github.com/skorch-dev/skorch",
+    "base_commit_choice": "Specific commit",
+    "base_commit_hash": "e769a2b89dc6e946dfaf42654184aa01b7025964"
+  },
+
+  "repo_url": "https://github.com/skorch-dev/skorch",
+  "repo_name": "skorch",
+  "base_commit": "e769a2b89dc6e946dfaf42654184aa01b7025964",
+  "language": "python",
+  "task_dir": "skorch-wlm-bayesopt-scratch",
+
+  "docker_built": true,
+  "instruction_written": true,
+  "solution_committed": true,
+  "tests_committed": true,
+  "qa_passed": false,
+  "models_tested": [],
+  "submitted": false,
+  "validation_passed": false,
+  "validation_attempts": 0,
+  "last_failure_phase": "",
+
+  "notes": "HARDER sibling of skorch-wlm-bayesopt (which PASSED all gates at d3f9303). Goal: from-scratch sequential model-based / Bayesian-style optimizer replacing GridSearchCV in examples/word_language_model/train.py. Dockerfile has NO BO library (numpy/scipy only) to force from-scratch. DESIGN DECISIONS (user): new separate task (keep library pass) + BESPOKE SIMPLER surrogate (not textbook GP+EI) to dodge the novelty wall AND too-hard risk. Reuses verbatim harness from skorch-wlm-bayesopt (test.sh/run_script.sh/parser.py). KEY: tests must (1) discriminate history-guided search from random (beats random on a DETERMINISTIC objective w/ fixed seed) -> fixes leniency finding #2; (2) keep import-safe builder contract (factory callable in isolation, no real training); (3) signature-robust invoker like the library task. RISKS: too-hard (0/5) if surrogate too fiddly; recall (MEDIUM) if textbook. PROVENANCE LESSON from sibling: user must author instruction in own voice (my over-helpful 'general direction' triggered AI-authorship classifier p3p~0.998). AWAITING: user picks bespoke surrogate design + authors instruction.md."
+}
