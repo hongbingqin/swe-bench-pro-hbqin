@@ -40,14 +40,31 @@ All training (argparse, corpus, `Net`, `.fit`) is wrapped in `main()` under
 
 ## Completion Rates
 
-_TBD — measured by the platform during validation._
+Measured by the platform across validation runs (the agent rates are **flaky**
+run-to-run; ranges shown):
+
+| Agent | Model | Pass rate (observed range) |
+|-------|-------|----------------------------|
+| oracle | oracle | 3/3 (1.000) |
+| metacode | avocado_dvsc_tester | 2/5 – 5/5 |
+| claude-code | claude-opus-4-6 | 3/5 – 5/5 |
+| (aux) | gpt-5.5 | 0/5 – 1/5 (some infra exits) |
+
+Balance gate is **borderline**: it passes on rolls where avocado lands < 5/5
+(e.g. avocado 2/5 + opus 5/5 → PASSED) and fails "too easy" on rolls where
+avocado sweeps 5/5. Expect to re-roll until a non-sweep run.
 
 ## Model Analysis
 
-_TBD (calibration pending)._ Design intent: escape the "too easy" outcome of the
-NW version by making the *procedure* error-prone (vertex vs. convex-fallback
-branch, trust-region clipping, shrink loop) rather than a single straight
-formula — while keeping it fully specified, deterministic, and exactly testable.
+The task sits right at the calibration edge. The from-scratch quadratic
+trust-region is fully specified (required so the exact-value discriminator tests
+are fair), so a careful agent can transcribe it — but the branchy procedure
+(LS-quadratic fit, vertex vs. `a ≥ 0` convex-fallback, trust-region clipping,
+shrink-on-no-improvement) makes avocado *inconsistent* (2/5–5/5) rather than a
+reliable 5/5. opus is the stronger solver (3/5–5/5); gpt struggles (0/5–1/5,
+partly codex infra exits). The discriminator rejects GP / linear / random
+surrogates (verified locally), so the reward signal is genuine; the only
+sensitivity is avocado's run-to-run variance around the not-trivial line.
 
 ## Anti-Cheating Analysis
 
