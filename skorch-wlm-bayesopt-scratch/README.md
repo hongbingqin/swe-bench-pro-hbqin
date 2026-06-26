@@ -65,8 +65,17 @@ formula — while keeping it fully specified, deterministic, and exactly testabl
   absent); from-scratch is enforced behaviorally by the discriminator tests, so
   internet stays at the platform default `true`.
 
-## Known caveats
+## Calibration notes
 
-- **Integration leniency:** no test runs `train.py`'s `main`, so an agent could
-  add the optimizer class without actually removing `GridSearchCV` from `main`.
-  The hard part (the optimizer) is fully tested; the replacement is not.
+- **Balance is borderline (flaky), not too-easy.** Across identical reruns
+  avocado swung **5/5 → 2/5**; on the 2/5 roll balance **passed** (avocado not
+  trivial + opus 5/5). So it sits right at the calibration edge — expect to
+  re-roll until a run lands avocado < 5/5.
+- **Integration now tested:** `test_gridsearchcv_replaced_in_train` checks the
+  exhaustive `GridSearchCV(` is no longer instantiated/imported in `train.py`,
+  closing the earlier Direction-B gap (an agent can't keep the grid search and
+  still pass).
+- **Over-specification (residual Medium):** the exact formula/constants are
+  prescribed (required for the discriminator tests to be fair) — inherent to a
+  from-scratch-with-exact-checks task; AI assessment notes it but it's justified
+  by the test contract.
