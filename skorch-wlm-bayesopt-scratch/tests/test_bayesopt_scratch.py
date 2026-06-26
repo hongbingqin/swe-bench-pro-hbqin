@@ -212,6 +212,45 @@ def test_optimize_loop_bounded_and_deterministic():
     assert objective(b1) >= -1.0, "optimizer did not get near the optimum: best=%s" % b1
 
 
+def test_propose_tie_break_smallest_index():
+    # Symmetric history + symmetric candidates => an exact acquisition tie;
+    # the spec's tie-break is "smallest index in the candidate list".
+    bounds = (0.0, 10.0)                 # h = 1.0
+    history = [(0.0, 1.0), (10.0, 1.0)]
+    candidates = [3.0, 7.0]             # symmetric about 5.0 -> identical acquisition
+    opt = _opt(bounds)
+    got = _call_propose(opt, history, candidates)
+    assert abs(float(got) - 3.0) < 1e-9, (
+        "exact-tie tie-break must return the smallest-index candidate (3.0), got %s" % got)
+
+
+def test_optimize_proposes_on_inclusive_grid():
+    # The spec fixes the candidate pool as a 101-point grid over the bounds,
+    # inclusive of the endpoints; the optimizer must also return the history.
+    bounds = (0.0, 10.0)
+
+    def objective(x):
+        return -(x - 3.0) ** 2
+
+    result = _call_optimize(_opt(bounds), objective, 8, 0)
+    hist = _extract_history(result)
+    assert hist is not None, "optimize must return the history (config, score) as well as the best config"
+    # Points proposed after the 3 seed points must lie on the inclusive grid
+    # lo + k*(hi-lo)/100  (step 0.1 over [0,10]).
+    configs = []
+    for item in hist:
+        c = item[0]
+        if isinstance(c, (list, tuple)):
+            c = c[0]
+        configs.append(float(c))
+    proposed = configs[3:]
+    assert proposed, "expected acquisition-proposed points after seeding"
+    for x in proposed:
+        k = (x - bounds[0]) / ((bounds[1] - bounds[0]) / 100.0)
+        assert abs(k - round(k)) < 1e-6, (
+            "proposed point %s is not on the inclusive 101-point grid" % x)
+
+
 # ---------------------------------------------------------------------------
 # pass_to_pass — existing single-config training path unchanged.
 # ---------------------------------------------------------------------------
