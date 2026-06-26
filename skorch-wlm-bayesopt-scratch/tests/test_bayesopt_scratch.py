@@ -183,6 +183,21 @@ def test_optimize_loop_bounded_and_deterministic():
     assert objective(b1) >= -1.0, "optimizer did not get near the optimum: best=%s" % b1
 
 
+def test_gridsearchcv_replaced_in_train():
+    # The exhaustive GridSearchCV must be removed from the training path and
+    # replaced by the from-scratch optimizer -- not left alongside it.
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "train.py"), encoding="utf-8") as f:
+        src = f.read()
+    # Check for actual usage (the call / the import), not mere mentions in a
+    # comment, so the exhaustive grid search is genuinely gone.
+    assert "GridSearchCV(" not in src, (
+        "GridSearchCV must no longer be instantiated in train.py "
+        "(replace it with the from-scratch optimizer)")
+    assert "import GridSearchCV" not in src, (
+        "GridSearchCV import should be removed from train.py")
+
+
 # ---------------------------------------------------------------------------
 # pass_to_pass — existing single-config training path unchanged.
 # ---------------------------------------------------------------------------
