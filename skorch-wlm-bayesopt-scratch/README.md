@@ -64,8 +64,12 @@ invention. Internet-off + no BO library in the image enforce "from scratch."
   loose convergence band, so a correct optimizer passes regardless of its
   seeding RNG.
 - **No oracle/ground-truth in agent-readable paths**; Dockerfile only clones +
-  pip-installs pinned deps; **no BO library present** (verified: skopt/optuna/
-  hyperopt/bayes_opt/GPy/botorch all absent) and `allow_internet=false`.
+  pip-installs pinned deps; **no BO library present** in the image (verified:
+  skopt/optuna/hyperopt/bayes_opt/GPy/botorch all absent).
+- **From-scratch is enforced behaviorally, not by the network.** Even with
+  internet on, a `pip install`ed BO library / GP doesn't help: a GP surrogate
+  fails the exact Nadaraya–Watson `predict` and acquisition `propose` tests
+  (verified locally).
 
 ## Known caveats
 
@@ -73,5 +77,7 @@ invention. Internet-off + no BO library in the image enforce "from scratch."
   agent could (in principle) leave `GridSearchCV` in `main` and merely *add* the
   optimizer class and still pass. The hard part (the optimizer) is fully tested;
   the replacement itself is not behaviorally verified.
-- **`allow_internet=false`** is deliberate (enforces from-scratch); it differs
-  from the platform default, so a structural/AI check may note it.
+- **`allow_internet`:** originally set `false` to block pip-installing a BO
+  library, but that starved the in-sandbox model agents (opus produced no
+  trials). Reverted to the platform default `true`; from-scratch is enforced by
+  the discriminator tests instead.

@@ -21,10 +21,13 @@ cpus = 1
 memory_mb = 2048
 storage_mb = 10240
 gpus = 0
-# Internet OFF: the image ships every dependency, and disabling the network
-# prevents the agent from pip-installing a Bayesian-optimization library to
-# shortcut the "from scratch" requirement.
-allow_internet = false
+# Internet ON (platform default). The agents run inside the sandbox and need
+# network egress to reach the model API; allow_internet=false starved the opus
+# agent (no trials produced). "From scratch" is enforced behaviorally instead:
+# the discriminator tests reject any GP/library/random solution (a skopt/GP
+# surrogate fails the exact Nadaraya-Watson surrogate + acquisition checks), so
+# pip-installing a BO library does not help the agent pass.
+allow_internet = true
 mcp_servers = []
 
 [verifier.env]
