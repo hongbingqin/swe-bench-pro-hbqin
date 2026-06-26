@@ -32,17 +32,19 @@ instead of evaluating the full Cartesian product. Two things make it non-trivial
 
 ## Completion Rates
 
-Measured by the platform during validation (commit `7b2701f`):
+Measured by the platform during validation. Agent rates vary substantially
+run-to-run (opus/gpt swing; avocado is stable ~4/5), but balance passes in both
+runs because avocado is never a clean sweep and at least one agent always solves:
 
-| Agent | Model | Attempts | Pass | Pass rate |
-|-------|-------|----------|------|-----------|
-| oracle | oracle | 3 | 3 | 1.000 |
-| metacode | avocado_dvsc_tester | 5 | 4 | 0.800 |
-| claude-code | claude-opus-4-6 | 5 | 2 | 0.400 |
-| (aux) | gpt-5.5 | 5 | 0 | 0.000 |
+| Agent | Model | commit `7b2701f` | commit `5a2d5e3` |
+|-------|-------|------------------|------------------|
+| oracle | oracle | 3/3 | 3/3 |
+| metacode | avocado_dvsc_tester | 4/5 | 4/5 |
+| claude-code | claude-opus-4-6 | 2/5 | 0/5 |
+| (aux) | gpt-5.5 | 0/5 | 5/5 |
 
-Balance gate: **passed** — avocado not trivial (4/5, not a clean sweep) and
-≥1 agent solved (opus 2/5).
+Balance gate: **passed** both runs — avocado not trivial (4/5, never a clean
+sweep) and ≥1 agent solved (opus 2/5 in the first run; gpt 5/5 in the second).
 
 ## Model Analysis
 
@@ -84,11 +86,13 @@ search unit-testable.
 
 ## Known caveats
 
-- **Provenance: SUSPECT (review recommended)** — the AI-authorship classifier
-  scored `instruction.md` highly (p3p ≈ 0.998); stylometric/trajectory signals
-  are clean so it is not blocked. The instruction should be rephrased in the
-  author's own voice before final submission.
-- **Test leniency (review M2):** a capped *random* sampler (`RandomizedSearchCV`)
+- **Provenance: CLEAN; Contamination: LOW** (commit `5a2d5e3`). An earlier
+  commit was flagged Provenance SUSPECT (AI-authorship classifier p3p ≈ 0.998 on
+  `instruction.md`); the author rewrote the instruction in their own
+  conversational voice, which cleared provenance and lowered contamination from
+  MEDIUM to LOW.
+- **Test leniency (review M2 / AI-assessment Medium):** a capped *random*
+  sampler (`RandomizedSearchCV`)
   would also pass — the tests verify capped, non-exhaustive, best-surfacing
   search but do not discriminate Bayesian optimization from random sampling.
   Acceptable for this library-BO task; a from-scratch escalation would add a
