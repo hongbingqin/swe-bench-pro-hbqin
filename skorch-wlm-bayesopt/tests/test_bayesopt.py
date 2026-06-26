@@ -24,7 +24,9 @@ _FACTORY_NAMES = [
     "get_search", "create_search", "bayes_search", "build_bayessearch",
     "bayesian_search", "build_bayes_opt", "make_bayesian_search",
     "build_hyperparameter_search", "build_param_search", "search_factory",
-    "build_hyperparam_search", "create_bayes_search",
+    "build_hyperparam_search", "create_bayes_search", "create_bayesian_search",
+    "make_bayesian_search", "build_bo", "make_bo", "tune", "tune_lr",
+    "hyperparameter_search", "build_search_cv",
 ]
 
 _EST_NAMES = {"estimator", "model", "net", "est", "base_estimator", "clf",
@@ -45,13 +47,25 @@ def _import_train():
 
 
 def _get_factory(train_module):
+    import types
+    # 1) exact allowlist
     for name in _FACTORY_NAMES:
         fn = getattr(train_module, name, None)
         if callable(fn) and not isinstance(fn, type):
             return fn
+    # 2) behavioral fallback: any function DEFINED IN train (not imported) whose
+    # name signals a search/optimizer builder. Avoids brittleness of a fixed
+    # allowlist (e.g. accepts create_bayesian_search, build_bo, tune_lr, ...).
+    _KEYS = ("search", "bayes", "optim", "hpo", "tune", "_bo", "bo_")
+    for name, obj in vars(train_module).items():
+        if (isinstance(obj, types.FunctionType)
+                and getattr(obj, "__module__", None) == train_module.__name__
+                and name != "main" and not name.startswith("_")
+                and any(k in name.lower() for k in _KEYS)):
+            return obj
     raise AssertionError(
-        "train.py must expose an importable, callable factory that builds the "
-        "search in isolation. Looked for one of: %s" % ", ".join(_FACTORY_NAMES))
+        "train.py must expose an importable, callable factory (defined in "
+        "train.py) that builds the search in isolation.")
 
 
 def _invoke_factory(factory, estimator, space, n_iter, random_state):
@@ -128,9 +142,12 @@ def _n_evaluated(search):
 
 def test_train_module_imports_without_training():
     # The heavy training code must be guarded so importing the module does not
-    # parse argv, load the corpus, or train.
+    # parse argv, load the corpus, or train. Beyond import-not-raising, assert
+    # the module actually exposes the importable search factory (a bare
+    # `import succeeded` check would be tautological).
     train = _import_train()
-    assert train is not None
+    factory = _get_factory(train)
+    assert callable(factory), "train.py must expose a callable search factory"
 
 
 def test_search_respects_iteration_cap():
