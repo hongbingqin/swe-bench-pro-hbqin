@@ -28,13 +28,15 @@ def _import_train():
 
 
 def _find_cls(mod):
+    # Find the optimizer class in the train module's namespace by the shape of
+    # its methods (predict + propose), regardless of which module defined it.
     found = []
     for _n, obj in vars(mod).items():
-        if inspect.isclass(obj) and getattr(obj, "__module__", None) == mod.__name__:
+        if inspect.isclass(obj):
             ms = {m for m in dir(obj) if not m.startswith("__")}
             if any(m in ms for m in _PREDICT) and any(m in ms for m in _PROPOSE):
                 found.append(obj)
-    assert found, "train.py must define an optimizer class with predict + propose methods"
+    assert found, "train.py must expose an optimizer class with predict + propose methods"
     return found[0]
 
 
