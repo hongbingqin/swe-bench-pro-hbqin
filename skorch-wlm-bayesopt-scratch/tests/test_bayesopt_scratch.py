@@ -8,19 +8,17 @@ import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# Robust, design-agnostic discovery of the from-scratch optimizer.
-#
-# instruction.md requires an optimizer *class* constructed with the bounds,
-# exposing a surrogate-prediction method, a next-pick proposal method, and an
-# end-to-end optimize method. Names are not prescribed, so we find the class by
-# the shape of its methods and bind constructor/method arguments flexibly.
+# Robust, design-agnostic discovery of the from-scratch optimizer class.
+# Contract (per instruction): a class constructed with bounds, exposing a
+# quadratic-fit prediction method, a next-point proposal method taking an
+# explicit trust radius, and an end-to-end optimize method.
 # ---------------------------------------------------------------------------
 
-_PREDICT = ("predict", "surrogate", "surrogate_predict", "predict_score",
-            "estimate", "posterior_mean", "predict_mean", "mean")
-_PROPOSE = ("propose", "propose_next", "next", "suggest", "ask", "select",
-            "propose_candidate", "next_point", "acquire", "choose")
-_OPTIMIZE = ("optimize", "run", "search", "maximize", "minimize",
+_PREDICT = ("predict", "surrogate", "predict_score", "evaluate", "quad_predict",
+            "fitted_value", "value")
+_PROPOSE = ("propose", "propose_next", "next", "suggest", "ask", "next_point",
+            "propose_point", "select")
+_OPTIMIZE = ("optimize", "run", "search", "minimize", "maximize",
              "run_optimization", "fit")
 
 
@@ -29,105 +27,95 @@ def _import_train():
     return importlib.import_module("train")
 
 
-def _find_optimizer_class(mod):
+def _find_cls(mod):
     found = []
-    for _name, obj in vars(mod).items():
+    for _n, obj in vars(mod).items():
         if inspect.isclass(obj) and getattr(obj, "__module__", None) == mod.__name__:
-            methods = {m for m in dir(obj) if not m.startswith("__")}
-            if any(m in methods for m in _PREDICT) and any(m in methods for m in _PROPOSE):
+            ms = {m for m in dir(obj) if not m.startswith("__")}
+            if any(m in ms for m in _PREDICT) and any(m in ms for m in _PROPOSE):
                 found.append(obj)
-    assert found, (
-        "train.py must define an optimizer class exposing surrogate-prediction "
-        "and next-pick proposal methods")
+    assert found, "train.py must define an optimizer class with predict + propose methods"
     return found[0]
 
 
 def _construct(cls, bounds):
     lo, hi = bounds
-    attempts = [((bounds,), {}), (tuple(bounds), {}), ((), {"bounds": bounds}),
-                ((lo, hi), {}), ((), {"lower": lo, "upper": hi}),
-                ((), {"low": lo, "high": hi})]
-    for args, kwargs in attempts:
+    for a, k in [((bounds,), {}), (tuple(bounds), {}), ((), {"bounds": bounds}),
+                 ((lo, hi), {}), ((), {"lower": lo, "upper": hi}),
+                 ((), {"low": lo, "high": hi})]:
         try:
-            return cls(*args, **kwargs)
+            return cls(*a, **k)
         except TypeError:
             continue
     raise AssertionError("could not construct optimizer with bounds %r" % (bounds,))
 
 
+def _opt(bounds):
+    return _construct(_find_cls(_import_train()), bounds)
+
+
 def _method(obj, names):
     for n in names:
-        m = getattr(obj, n, None)
-        if callable(m):
-            return m
-    raise AssertionError("optimizer is missing a method among %s" % (names,))
+        f = getattr(obj, n, None)
+        if callable(f):
+            return f
+    raise AssertionError("optimizer missing a method among %s" % (names,))
 
 
-def _opt(bounds):
-    cls = _find_optimizer_class(_import_train())
-    return _construct(cls, bounds)
-
-
-def _call_predict(obj, history, x):
-    m = _method(obj, _PREDICT)
+def _predict(obj, history, x):
+    f = _method(obj, _PREDICT)
     try:
-        return float(m(history, x))
+        return float(f(history, x))
     except TypeError:
-        return float(m(x, history))
+        return float(f(x, history))
 
 
-def _call_propose(obj, history, candidates):
-    m = _method(obj, _PROPOSE)
+def _propose(obj, history, radius):
+    f = _method(obj, _PROPOSE)
     try:
-        return m(history, candidates)
+        return float(f(history, radius))
     except TypeError:
-        return m(candidates, history)
+        return float(f(radius, history))
 
 
-def _call_optimize(obj, objective, n_iter, seed):
-    m = _method(obj, _OPTIMIZE)
-    for args, kwargs in [((objective, n_iter, seed), {}),
-                         ((objective,), {"n_iter": n_iter, "seed": seed}),
-                         ((objective, n_iter), {"seed": seed}),
-                         ((objective,), {"budget": n_iter, "seed": seed})]:
+def _optimize(obj, objective, n_iter, seed):
+    f = _method(obj, _OPTIMIZE)
+    for a, k in [((objective,), {"n_iter": n_iter, "seed": seed}),
+                 ((objective,), {"max_iters": n_iter, "seed": seed}),
+                 ((objective,), {"budget": n_iter, "seed": seed}),
+                 ((objective, n_iter, seed), {}),
+                 ((objective, n_iter), {"seed": seed})]:
         try:
-            return m(*args, **kwargs)
+            return f(*a, **k)
         except TypeError:
             continue
     raise AssertionError("could not call the optimize method")
 
 
-def _extract_best(result):
-    if isinstance(result, tuple):
-        return float(result[0])
-    if isinstance(result, dict):
-        for k in ("best_config", "best", "x", "best_x", "argmax"):
-            if k in result:
-                return float(result[k])
-    return float(result)
+def _extract_best(r):
+    if isinstance(r, tuple):
+        return float(r[0])
+    if isinstance(r, dict):
+        for k in ("best_config", "best", "best_x", "x", "argmax"):
+            if k in r:
+                return float(r[k])
+    return float(r)
 
 
-def _extract_history(result):
-    if isinstance(result, tuple) and len(result) >= 2:
-        h = result[1]
-        if isinstance(h, (list, tuple)):
-            return list(h)
-    if isinstance(result, dict):
+def _extract_history(r):
+    if isinstance(r, tuple) and len(r) >= 2 and isinstance(r[1], (list, tuple)):
+        return list(r[1])
+    if isinstance(r, dict):
         for k in ("history", "trace", "observations", "evaluations"):
-            if k in result:
-                return list(result[k])
+            if k in r:
+                return list(r[k])
     return None
 
 
-# Oracle NW surrogate (mirrors the spec) used to compute expected values.
-def _nw(history, x, h):
-    xs = np.asarray([c for c, _ in history], dtype=float)
+def _ls_quad(history):
+    xs = np.asarray([x for x, _ in history], dtype=float)
     ss = np.asarray([s for _, s in history], dtype=float)
-    w = np.exp(-((x - xs) ** 2) / (2.0 * h ** 2))
-    total = float(w.sum())
-    if total < 1e-12:
-        return float(ss.mean())
-    return float((w * ss).sum() / total)
+    return np.polyfit(xs, ss, 2)   # [a, b, c]
 
 
 # ---------------------------------------------------------------------------
@@ -135,120 +123,62 @@ def _nw(history, x, h):
 # ---------------------------------------------------------------------------
 
 def test_module_imports_without_training():
-    train = _import_train()
-    assert train is not None
+    assert _import_train() is not None
 
 
-def test_surrogate_is_nadaraya_watson():
-    bounds = (0.0, 10.0)        # h = 0.1 * 10 = 1.0
-    h = 0.1 * (bounds[1] - bounds[0])
-    history = [(1.0, 0.0), (2.0, 1.0), (8.0, 0.0)]
+def test_predict_is_least_squares_quadratic():
+    bounds = (0.0, 10.0)
+    history = [(1.0, -4.0), (3.0, 0.0), (5.0, -4.0)]   # exactly -(x-3)^2
     opt = _opt(bounds)
-    for x in (1.5, 2.5, 5.0):
-        expected = _nw(history, x, h)
-        got = _call_predict(opt, history, x)
+    a, b, c = _ls_quad(history)
+    for x in (0.0, 2.0, 4.0, 7.0):
+        expected = float(a * x * x + b * x + c)
+        got = _predict(opt, history, x)
         assert abs(got - expected) < 1e-6, (
-            "surrogate at x=%s: expected NW %.6f, got %.6f "
-            "(not a Nadaraya-Watson kernel average)" % (x, expected, got))
+            "predict(%.1f)=%.4f is not the LS quadratic value %.4f "
+            "(a GP/kernel/linear surrogate fails here)" % (x, got, expected))
 
 
-def test_surrogate_zero_weight_fallback():
-    bounds = (0.0, 1.0)         # h = 0.1
-    history = [(0.0, 5.0), (0.0, 7.0)]
+def test_propose_vertex_when_concave():
+    bounds = (0.0, 10.0)
+    history = [(1.0, -4.0), (3.0, 0.0), (5.0, -4.0)]   # vertex at 3.0, a<0
     opt = _opt(bounds)
-    # x is ~10 bandwidths away -> all weights underflow -> fallback = mean(scores)
-    got = _call_predict(opt, history, 1.0)
-    assert abs(got - 6.0) < 1e-6, (
-        "zero-weight fallback should return the mean of observed scores (6.0), "
-        "got %.6f" % got)
+    got = _propose(opt, history, 5.0)   # best_x=3, feasible [0,8], vertex 3 interior
+    assert abs(got - 3.0) < 1e-6, "concave fit: expected vertex 3.0, got %s" % got
 
 
-def test_propose_maximizes_acquisition():
-    bounds = (0.0, 10.0)        # h = 1.0
-    h = 0.1 * (bounds[1] - bounds[0])
-    history = [(1.0, 0.0), (2.0, 1.0), (8.0, 0.0)]
-    candidates = [1.0, 2.0, 5.0, 8.0, 9.5]
-
-    def nearest(x):
-        return min(abs(x - c) for c, _ in history)
-
-    acq = [_nw(history, c, h) + 0.2 * nearest(c) for c in candidates]
-    expected = candidates[int(np.argmax(acq))]   # argmax -> smallest index on ties
-
+def test_propose_clips_to_trust_region():
+    bounds = (0.0, 10.0)
+    history = [(0.0, -9.0), (1.0, -4.0), (2.0, -1.0)]  # -(x-3)^2; best_x=2; vertex 3
     opt = _opt(bounds)
-    got = _call_propose(opt, history, candidates)
-    assert abs(float(got) - expected) < 1e-9, (
-        "propose should maximize mean + 0.2*exploration -> %.3f, got %s"
-        % (expected, got))
+    got = _propose(opt, history, 0.5)   # feasible [1.5, 2.5] -> clip vertex 3 to 2.5
+    assert abs(got - 2.5) < 1e-6, "vertex should clip to feasible 2.5, got %s" % got
+
+
+def test_propose_convex_fallback_to_endpoint():
+    bounds = (0.0, 10.0)
+    history = [(0.0, 4.0), (2.0, 0.0), (5.0, 9.0)]     # (x-2)^2; a>=0; best_x=5
+    opt = _opt(bounds)
+    # feasible [2, 8]; predicted q(2)=0 < q(8)=36 -> choose endpoint 8.0
+    got = _propose(opt, history, 3.0)
+    assert abs(got - 8.0) < 1e-6, "convex fallback: expected endpoint 8.0, got %s" % got
 
 
 def test_optimize_loop_bounded_and_deterministic():
-    # End-to-end loop mechanics, kept robust to the seeding RNG choice (the
-    # exact NW/acquisition discrimination lives in the formula tests above).
-    bounds = (0.0, 10.0)
-
-    def objective(x):
-        return -(x - 3.0) ** 2     # smooth bowl, maximized at x = 3.0 (score 0)
-
-    r1 = _call_optimize(_opt(bounds), objective, 12, 0)
-    r2 = _call_optimize(_opt(bounds), objective, 12, 0)
-    b1, b2 = _extract_best(r1), _extract_best(r2)
-
-    # Deterministic: same seed -> same result.
-    assert b1 == b2, "same seed must give the same result (got %s vs %s)" % (b1, b2)
-
-    # Returned config is within the bounds.
-    assert 0.0 - 1e-9 <= b1 <= 10.0 + 1e-9, "best config %s outside bounds" % b1
-
-    # The cap bounds the work (tolerant of whether the 3 seed points count
-    # toward the cap): the loop must not run unbounded (e.g. the whole grid).
-    hist = _extract_history(r1)
-    if hist is not None:
-        assert 3 <= len(hist) <= 12 + 3, "history length %d not bounded by the cap" % len(hist)
-
-    # It actually optimizes on a smooth objective (loose band: any correct
-    # history-guided optimizer converges well within this, regardless of RNG;
-    # rules out a non-optimizing/garbage result).
-    assert objective(b1) >= -1.0, "optimizer did not get near the optimum: best=%s" % b1
-
-
-def test_propose_tie_break_smallest_index():
-    # Symmetric history + symmetric candidates => an exact acquisition tie;
-    # the spec's tie-break is "smallest index in the candidate list".
-    bounds = (0.0, 10.0)                 # h = 1.0
-    history = [(0.0, 1.0), (10.0, 1.0)]
-    candidates = [3.0, 7.0]             # symmetric about 5.0 -> identical acquisition
-    opt = _opt(bounds)
-    got = _call_propose(opt, history, candidates)
-    assert abs(float(got) - 3.0) < 1e-9, (
-        "exact-tie tie-break must return the smallest-index candidate (3.0), got %s" % got)
-
-
-def test_optimize_proposes_on_inclusive_grid():
-    # The spec fixes the candidate pool as a 101-point grid over the bounds,
-    # inclusive of the endpoints; the optimizer must also return the history.
     bounds = (0.0, 10.0)
 
     def objective(x):
         return -(x - 3.0) ** 2
 
-    result = _call_optimize(_opt(bounds), objective, 8, 0)
-    hist = _extract_history(result)
-    assert hist is not None, "optimize must return the history (config, score) as well as the best config"
-    # Points proposed after the 3 seed points must lie on the inclusive grid
-    # lo + k*(hi-lo)/100  (step 0.1 over [0,10]).
-    configs = []
-    for item in hist:
-        c = item[0]
-        if isinstance(c, (list, tuple)):
-            c = c[0]
-        configs.append(float(c))
-    proposed = configs[3:]
-    assert proposed, "expected acquisition-proposed points after seeding"
-    for x in proposed:
-        k = (x - bounds[0]) / ((bounds[1] - bounds[0]) / 100.0)
-        assert abs(k - round(k)) < 1e-6, (
-            "proposed point %s is not on the inclusive 101-point grid" % x)
+    r1 = _optimize(_opt(bounds), objective, 12, 0)
+    r2 = _optimize(_opt(bounds), objective, 12, 0)
+    b1, b2 = _extract_best(r1), _extract_best(r2)
+    assert b1 == b2, "same seed must give the same result (%s vs %s)" % (b1, b2)
+    assert 0.0 - 1e-9 <= b1 <= 10.0 + 1e-9, "best %s outside bounds" % b1
+    hist = _extract_history(r1)
+    if hist is not None:
+        assert 3 <= len(hist) <= 12 + 3, "history length %d not bounded by cap" % len(hist)
+    assert objective(b1) >= -1.0, "optimizer did not get near the optimum: best=%s" % b1
 
 
 # ---------------------------------------------------------------------------
