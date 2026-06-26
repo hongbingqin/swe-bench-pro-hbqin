@@ -12,6 +12,6 @@ Here `best_x` means the `x` value in the history with the maximum observed score
 
 The trust region behavior is pinned in the loop. I start with an initial radius of `0.25 × (upper − lower)`. On any iteration with no improvement in the best observed score, I shrink the radius by a factor of `0.5` (and I don’t rely on hidden state to do this; it’s only updated inside `optimize`). The loop is budgeted by an explicit iteration cap.
 
-For seeding, I start with 3 initial points drawn uniformly at random from within the bounds using the provided seed, then I propose subsequent points using the vertex rule above. Same seed gives the same result. The proposed next point is a continuous value (not snapped to a grid), so the tests can directly check the vertex formula and the clipping behavior.
+For seeding, I start with 3 initial points drawn uniformly at random from within the bounds using the provided seed, then I propose subsequent points using the vertex rule above. Same seed gives the same result. The proposed next point is a continuous value (not snapped to a grid), so the tests can directly check the vertex formula and the clipping behavior. The agent must define the optimizer class inside train.py, not in a new/separate module.
 
 Finally, I’ll replace `GridSearchCV` in `train.py` with this optimizer, while keeping the single-config training path intact under the `__main__` guard so imports stay safe.
