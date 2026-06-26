@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "current_step": 7,
+  "current_step": 8,
   "started_at": "2026-06-25T00:00:00Z",
-  "last_updated": "2026-06-26T03:10:00Z",
-  "fix_in_progress": "v2: signature-robust test (inspect.signature name-binding for estimator/space/n_iter/seed + positional fallback) verified to rescue all 3 'made-a-factory' agent failure modes (wrong order, alt names, unconventional names) -> 5/5 each; oracle 5/5, nop correct. REMAINING gap = 'no factory at all' agents (inlined BO in main) need instruction.md to clearly require an IMPORTABLE search-builder fn callable in isolation with a caller-provided estimator + space + cap. That edit is user-owned (HARD RULE). After user tightens instruction + push, expect solvable; then watch for swing to too-easy/too-lenient.",
+  "last_updated": "2026-06-26T04:15:00Z",
+  "v2_result": "PASSING at commit 7b2701f: Structural 8/8, Oracle 3/3, BALANCE PASSED (avocado 4/5 not-trivial, opus 2/5, gpt 0/5 -> >=1 solved), AI Accept (0H/0M/2L), Contamination MEDIUM. Library-BO PASSED after the factory-contract fix - no from-scratch escalation needed. OUTSTANDING before submit: Provenance SUSPECT (review recommended) - AI-authorship classifier scored instruction.md p3p~0.998 (CONTAMINATED) but uncorroborated (stylometric+trajectory CLEAN, agentModified false) so NOT BLOCKED. Cause: my 'general direction' on the factory contract made instruction read as AI-prose. FIX (user lane): rephrase instruction.md in own voice (same requirements, own words) -> clears flag + genuine authorship. README updated with real numbers + caveats.",
 
   "answers": {
     "problem_type": "New feature",
