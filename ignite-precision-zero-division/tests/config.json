@@ -39,7 +39,11 @@
     "tests/ignite/metrics/test_precision_zero_division.py::test_multilabel_zero_division[nan-samples-precision]"
   ],
   "pass_to_pass": [
-    "tests/ignite/metrics/test_precision.py::test_no_update"
+    "tests/ignite/metrics/test_precision.py::test_no_update",
+    "tests/ignite/metrics/test_precision_zero_division.py::test_default_per_class_zero_is_zero[precision]",
+    "tests/ignite/metrics/test_precision_zero_division.py::test_default_per_class_zero_is_zero[recall]",
+    "tests/ignite/metrics/test_precision_zero_division.py::test_default_zero_division_is_zero[macro-precision]",
+    "tests/ignite/metrics/test_precision_zero_division.py::test_default_zero_division_is_zero[macro-recall]"
   ],
   "selected_test_files_to_run": [
     "tests/ignite/metrics/test_precision_zero_division.py",
