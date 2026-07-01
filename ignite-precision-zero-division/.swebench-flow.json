@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "current_step": 6,
+  "started_at": "2026-07-01T00:00:00Z",
+  "last_updated": "2026-07-01T02:00:00Z",
+  "answers": {
+    "problem_type": "New feature",
+    "repo_url": "https://github.com/pytorch/ignite",
+    "base_commit_choice": "HEAD",
+    "base_commit_hash": "d5208644ab5646ee250c3b5db08f5c5e9f128354"
+  },
+  "repo_url": "https://github.com/pytorch/ignite",
+  "repo_name": "ignite",
+  "base_commit": "d5208644ab5646ee250c3b5db08f5c5e9f128354",
+  "language": "python",
+  "task_dir": "ignite-precision-zero-division",
+  "docker_built": true,
+  "docker_note": "Built ignite-zerodiv:latest. Verified: Precision has NO zero_division (gap real); baseline test_precision.py = 687 passed / 1479 skipped / 27 errors (errors are TestDistributed gloo_cpu - need multi-proc backend, NOT our tests; scope selected_test_files to non-distributed zero_division node IDs).",
+  "instruction_written": true,
+  "solution_committed": true,
+  "tests_committed": true,
+  "qa_passed": false,
+  "models_tested": [],
+  "submitted": false,
+  "validation_passed": false,
+  "validation_attempts": 0,
+  "last_failure_phase": "",
+  "notes": "NEW task, pytorch/ignite (real LIBRARY code w/ real pytest suite - deliberately avoids skorch examples/ traps: no synthetic tests, changes touch tracked files, no new-file-drop). FEATURE: add sklearn-style zero_division (0/1/NaN) to classification Precision/Recall/Fbeta. Gap CONFIRMED absent at HEAD (Precision.__init__ has no zero_division; compute() masks div-by-zero with eps at precision.py:149 -> always returns 0). _BasePrecisionRecall shared by Precision+Recall (recall.py imports it); Fbeta builds on them. Tests exist: tests/ignite/metrics/test_precision.py(505L), test_recall.py(507L), test_fbeta.py(235L) and ALREADY compare vs sklearn precision_score(...,zero_division=0) -> exact-testable harness ready. DIFFICULTY LEVER (avoid too-easy): require correctness across all 6 average modes (False/None/macro/weighted/micro/samples) x per-class arrays x {0,1,nan}. NOVELTY: sklearn-parity feature, bespoke ignite impl -> ~MEDIUM (not a famous artifact). CAVEATS: calibration may land moderate/easy (measure); keep instruction in own voice (don't lift a GH issue). Dockerfile pins ignite@d520864 + torch2.4.1cpu + numpy/scipy/sklearn/pytest(+order/timeout/xdist/cov).",
+  "build_note": "Solution+tests built via subagent, validated via HARNESS: ORACLE reward=1 (33/33 req pass, 820 total), NOP reward=0 (32 fail_to_pass fail + 1 pass_to_pass test_no_update passes at base). Solution touches ignite/metrics/{precision,recall,fbeta}.py only; test_patch = new tests/ignite/metrics/test_precision_zero_division.py (123 tests; 32 curated as fail_to_pass covering binary/multiclass/multilabel x {0,1,nan} x key avg modes x precision/recall + fbeta-invalid + invalid-raises). HARNESS FIX: run_script.sh forced --color=no -o addopts= (ignite pins addopts=--color=yes -> ANSI codes broke parser.py regex -> 0 parsed). fail_to_pass is a CONFIG-ONLY calibration lever (full 123-test file runs; can expand/contract scored subset from cloud results). pass_to_pass=test_precision.py::test_no_update (needs test_precision.py in selected_test_files)."
+}
