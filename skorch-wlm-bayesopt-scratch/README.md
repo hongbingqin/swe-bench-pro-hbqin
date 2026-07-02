@@ -4,95 +4,88 @@
 
 Harder sibling of `skorch-wlm-bayesopt`. Instead of swapping in a library
 (`BayesSearchCV`), the solver implements a **from-scratch bounded 1-D optimizer**
-for the `examples/word_language_model` learning-rate search: a **local quadratic
-trust-region** method (least-squares degree-2 surrogate + vertex step with a
-convex/linear fallback + a shrinking trust radius), capped by an explicit
-iteration budget, using only numpy/scipy.
+for the `examples/word_language_model` learning-rate search — a surrogate-guided
+search over the observed `(config, score)` history with a shrinking trust region,
+capped by an explicit iteration budget, using only numpy/scipy.
 
-A first attempt used a Nadaraya–Watson kernel surrogate; with a fully-specified
-formula it calibrated **too easy** (avocado 5/5). This quadratic trust-region
-version keeps the algorithm fully specified (so the discriminator tests are
-fair) but adds **branchy, error-prone procedure** — the `a ≥ 0` fallback, the
-trust-region clipping, the shrink-on-no-improvement loop — to separate a careful
-solution from a quick one.
+The instruction states the *goal and the surrogate family* (a quadratic surrogate
+over the history) but deliberately **does not spell out the proposal formula, the
+clipping convention, the degenerate-case handling, or the trust-region constants**.
+The agent must derive those; the tests pin the correct behavior via computed
+oracles. This is the difficulty lever — deriving a correct, deterministic
+surrogate optimizer rather than transcribing a fully-specified recipe.
 
 - **Repo:** `skorch-dev/skorch` @ `e769a2b89dc6e946dfaf42654184aa01b7025964`
 - **Language:** Python
 - **Files touched by the reference solution:** `examples/word_language_model/train.py`
 
+> Exact reference-solution details (formulas, constants, tie-breaks) intentionally
+> live in `solution/` only — not in this README or in `instruction.md` — to keep
+> the task from being one-pass reconstructible from author-facing files.
+
 ## Reference solution (oracle)
 
-`train.py`: a `QuadraticTrustRegionOptimizer` class constructed with the search
-`bounds`, with deterministic, history-driven methods:
-- `predict(history, x)` — value at `x` of the least-squares degree-2 polynomial
-  fit (`a·x²+b·x+c`) to all history points.
-- `propose(history, radius)` — the vertex `x* = −b/(2a)` clipped to the feasible
-  interval `[max(lo, best_x−radius), min(hi, best_x+radius)]` (`best_x` = max-score
-  point); if `a ≥ 0` (no usable max), the feasible endpoint with the higher
-  predicted value (tie → lower endpoint).
-- `optimize(objective, n_iter, seed)` — 3 seeded uniform points, then vertex
-  proposals; trust radius starts at `0.25·(upper−lower)` and shrinks `×0.5` on a
-  non-improving iteration; returns `(best_config, history)`.
+`train.py` gains a small from-scratch optimizer class constructed with the search
+`bounds`, exposing deterministic, history-driven methods for (a) evaluating the
+fitted quadratic surrogate at a point, (b) proposing the next point within a
+trust region around the current best, and (c) an end-to-end `optimize(...)` loop
+that seeds a few points, proposes subsequent ones, shrinks the trust radius on
+non-improvement, and returns the best config found. All training (argparse,
+corpus, `Net`, `.fit`) is wrapped in `main()` under `if __name__ == '__main__':`
+(import-safe); the optimizer replaces `GridSearchCV`. `net.py` / `model.py` are
+untouched.
 
-All training (argparse, corpus, `Net`, `.fit`) is wrapped in `main()` under
-`if __name__ == '__main__':` (import-safe); the optimizer replaces `GridSearchCV`.
-`net.py` / `model.py` are untouched.
+(See `solution/` for the exact surrogate/proposal/constants — omitted here by
+design.)
 
 ## Completion Rates
 
-Measured by the platform across validation runs (the agent rates are **flaky**
-run-to-run; ranges shown):
+_Pending recalibration after the Shape-A redesign (recipe withheld from
+instruction + hardened test plumbing). Will be regenerated from platform job
+logs once the balance gate passes._
 
-| Agent | Model | Pass rate (observed range) |
-|-------|-------|----------------------------|
+| Agent | Model | Pass rate |
+|-------|-------|-----------|
 | oracle | oracle | 3/3 (1.000) |
-| metacode | avocado_dvsc_tester | 2/5 – 5/5 |
-| claude-code | claude-opus-4-6 | 3/5 – 5/5 |
-| (aux) | gpt-5.5 | 0/5 – 1/5 (some infra exits) |
-
-Balance gate is **borderline**: it passes on rolls where avocado lands < 5/5
-(e.g. avocado 2/5 + opus 5/5 → PASSED) and fails "too easy" on rolls where
-avocado sweeps 5/5. Expect to re-roll until a non-sweep run.
+| metacode | avocado_dvsc_tester | _pending_ |
+| claude-code | claude-opus-4-6 | _pending_ |
+| (aux) | gpt-5.5 | _pending_ |
 
 ## Model Analysis
 
-The task sits right at the calibration edge. The from-scratch quadratic
-trust-region is fully specified (required so the exact-value discriminator tests
-are fair), so a careful agent can transcribe it — but the branchy procedure
-(LS-quadratic fit, vertex vs. `a ≥ 0` convex-fallback, trust-region clipping,
-shrink-on-no-improvement) makes avocado *inconsistent* (2/5–5/5) rather than a
-reliable 5/5. opus is the stronger solver (3/5–5/5); gpt struggles (0/5–1/5,
-partly codex infra exits). The discriminator rejects GP / linear / random
-surrogates (verified locally), so the reward signal is genuine; the only
-sensitivity is avocado's run-to-run variance around the not-trivial line.
+_Pending recalibration._ With the proposal recipe withheld, observed failures are
+genuine derivation errors (e.g. mishandling the no-interior-maximum degenerate
+case, non-deterministic seeding, off-by-one budget/loop bugs) rather than
+return-shape/plumbing artifacts. To be filled from real job logs after a passing
+run.
 
 ## Anti-Cheating Analysis
 
-- **Tests are verifier-only** (`test_patch` at verify time); fail_to_pass import
-  the patched `train` and call the optimizer's methods.
+- **Tests are verifier-only** (`test_patch` applied at verify time); fail_to_pass
+  import the patched `train` and call the optimizer's methods.
 - **Strong discrimination (verified locally):** GP-surrogate and linear-surrogate
-  cheats both **fail all four `predict`/`propose` tests** — `predict` pins the LS
-  quadratic value, and `propose` pins the vertex, the trust-region clip, and the
-  `a ≥ 0` endpoint fallback. Only a faithful quadratic-trust-region implementation
-  passes.
+  substitutes both fail the `predict`/`propose` discriminator tests, which assert
+  the true least-squares-quadratic values at multiple points and the exact
+  proposal behavior via computed oracles. Only a faithful quadratic surrogate
+  passes — but the *instruction does not disclose those values*, so passing
+  requires deriving the method, not recalling a stated one.
+- **Return-shape robust:** the harness accepts a scalar, a `(best, history)`
+  tuple, or a dict for `optimize()`'s return, and multiple method-name/arg-order
+  variants — so a valid solution is judged on behavior, not on matching a pinned
+  return shape.
 - **Deterministic / RNG-robust:** `predict`/`propose` tests use fixed histories
   (no randomness, explicit radius); the end-to-end test checks loop mechanics +
-  determinism with a loose convergence band.
+  determinism with a bounded-history and convergence band.
 - **No BO library in the image** (skopt/optuna/hyperopt/bayes_opt/GPy/botorch all
-  absent); from-scratch is enforced behaviorally by the discriminator tests, so
-  internet stays at the platform default `true`.
+  absent); from-scratch is enforced behaviorally by the discriminator tests.
 
 ## Calibration notes
 
-- **Balance is borderline (flaky), not too-easy.** Across identical reruns
-  avocado swung **5/5 → 2/5**; on the 2/5 roll balance **passed** (avocado not
-  trivial + opus 5/5). So it sits right at the calibration edge — expect to
-  re-roll until a run lands avocado < 5/5.
-- **Integration now tested:** `test_gridsearchcv_replaced_in_train` checks the
-  exhaustive `GridSearchCV(` is no longer instantiated/imported in `train.py`,
-  closing the earlier Direction-B gap (an agent can't keep the grid search and
-  still pass).
-- **Over-specification (residual Medium):** the exact formula/constants are
-  prescribed (required for the discriminator tests to be fair) — inherent to a
-  from-scratch-with-exact-checks task; AI assessment notes it but it's justified
-  by the test contract.
+- **Shape-A redesign:** the instruction was changed to withhold the proposal
+  formula/clip/fallback/constants (previously fully specified → recall-adjacent).
+  Test plumbing was hardened (return-shape/signature tolerant) so failures reflect
+  genuine derivation errors, not artifacts.
+- **Integration tested:** `test_gridsearchcv_replaced_in_train` checks the
+  exhaustive `GridSearchCV(` is no longer instantiated/imported in `train.py`.
+- Difficulty and completion numbers to be refreshed from platform logs after the
+  next passing validation.

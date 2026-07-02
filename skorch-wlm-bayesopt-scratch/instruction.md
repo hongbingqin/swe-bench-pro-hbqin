@@ -8,7 +8,7 @@ The surrogate is a least-squares quadratic fit. Given a history list of `(x, sco
 
 Propose where the surrogate looks best, within a trust region around the current best.
 
-Here `best_x` means the `x` value in the history with the maximum observed score. If the quadratic is not a usable maximum for a maximization problem, handle the degenerate case.
+The best point is when the surrogate has no usable interior maximum — namely that it's a feasible endpoint (the one the surrogate predicts higher).
 
 The trust region behavior is pinned in the loop. Trust region shrinks when there's no improvement.
 
