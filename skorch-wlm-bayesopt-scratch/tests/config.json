@@ -19,5 +19,5 @@
   "selected_test_files_to_run": [
     "examples/word_language_model/test_bayesopt_scratch.py"
   ],
-  "before_repo_set_cmd": "git reset --hard e769a2b89dc6e946dfaf42654184aa01b7025964\ngit clean -fd"
+  "before_repo_set_cmd": ""
 }
