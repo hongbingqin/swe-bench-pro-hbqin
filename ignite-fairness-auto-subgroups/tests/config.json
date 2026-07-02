@@ -22,5 +22,5 @@
   "selected_test_files_to_run": [
     "tests/ignite/metrics/fairness/test_auto_subgroups.py"
   ],
-  "before_repo_set_cmd": "git reset --hard d5208644ab5646ee250c3b5db08f5c5e9f128354\ngit clean -fd"
+  "before_repo_set_cmd": ""
 }
