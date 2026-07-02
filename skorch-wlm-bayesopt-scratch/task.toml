@@ -2,6 +2,8 @@ schema_version = "1.1"
 
 [task]
 name = "codimango/skorch-wlm-bayesopt-scratch"
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
 description = "Replace the exhaustive GridSearchCV hyperparameter search in skorch's word_language_model example with a from-scratch sequential model-based (Bayesian-style) optimizer — a hand-written surrogate over observed (config, score) history plus an acquisition rule that proposes the next configuration — using only numpy/scipy (no Bayesian-optimization library), capped by an explicit iteration budget."
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "skorch", "pytorch", "hyperparameter-optimization", "bayesian-optimization", "surrogate-model", "from-scratch", "new-feature"]
