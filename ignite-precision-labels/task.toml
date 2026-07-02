@@ -1,0 +1,31 @@
+schema_version = "1.1"
+
+[task]
+name = "codimango/ignite-precision-labels"
+description = "Add a scikit-learn-style `labels` parameter to PyTorch-Ignite's classification Precision/Recall (and Fbeta) metrics, restricting (and reordering) the set of classes/labels included in the per-class output and in the macro/weighted/None aggregations, matching sklearn's precision_score/recall_score `labels` semantics."
+authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
+keywords = ["python", "pytorch-ignite", "metrics", "precision", "recall", "labels", "scikit-learn-parity", "new-feature"]
+
+[metadata]
+language = "python"
+
+[verifier]
+timeout_sec = 600.0
+
+[agent]
+timeout_sec = 600.0
+
+[environment]
+build_timeout_sec = 900.0
+cpus = 1
+memory_mb = 4096
+storage_mb = 10240
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[verifier.env]
+
+[environment.env]
+
+[solution.env]

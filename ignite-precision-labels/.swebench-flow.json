@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "current_step": 7,
+  "started_at": "2026-07-02T00:30:00Z",
+  "last_updated": "2026-07-02T00:30:00Z",
+  "answers": {
+    "problem_type": "New feature",
+    "repo_url": "https://github.com/pytorch/ignite",
+    "base_commit_choice": "HEAD",
+    "base_commit_hash": "d5208644ab5646ee250c3b5db08f5c5e9f128354"
+  },
+  "repo_url": "https://github.com/pytorch/ignite",
+  "repo_name": "ignite",
+  "base_commit": "d5208644ab5646ee250c3b5db08f5c5e9f128354",
+  "language": "python",
+  "task_dir": "ignite-precision-labels",
+  "docker_built": true,
+  "instruction_written": true,
+  "solution_committed": true,
+  "tests_committed": true,
+  "qa_passed": true,
+  "models_tested": [],
+  "submitted": false,
+  "validation_passed": false,
+  "validation_attempts": 0,
+  "last_failure_phase": "",
+  "notes": "Sibling of ignite-precision-zero-division (which PASSED all gates). FEATURE: add sklearn-style `labels` (subset+reorder of classes) to classification Precision/Recall/Fbeta. Gap CONFIRMED absent at HEAD (Precision.__init__ has no labels param). Reuses ignite-zerodiv:latest image (same repo/commit d520864/deps) + the FIXED harness (run_script.sh forces --color=no -o addopts= because ignite pins addopts=--color=yes which breaks parser.py). RECIPE (from zero_division WIN): real library code + real pytest suite; build solution+tests via subagent; validate via harness (oracle reward=1/nop reward=0); fail_to_pass = config-only calibration lever (curate ~30, expand if too-easy); pass_to_pass must include a base-passing test; expect parity feature too-easy-for-avocado but FLAKY on code-gen -> re-roll lands balance; keep instruction in own voice (provenance). CAVEAT: overlaps zero_division files (_BasePrecisionRecall) - distinct feature, fine. AWAITING: user authors instruction.md (labels contract).",
+  "build_note": "Solution+tests via subagent, harness-validated: ORACLE reward=1 (24/24 = 18 fail_to_pass + 6 pass_to_pass), NOP reward=0 (6 p2p pass at base, 18 f2p fail). Solution: ignite/metrics/{precision,recall,fbeta}.py (labels index_select per-class before aggregation; micro/weighted/samples restricted to subset; default None identical to today; ValueError on invalid labels). test_patch=new tests/ignite/metrics/test_precision_labels.py (186 cases vs sklearn; 18 curated f2p across binary/multiclass/multilabel x avg modes + 4 invalid; pass_to_pass=5 labels=None backward-compat + test_no_update). Reused ignite-zerodiv image + fixed harness. fail_to_pass = config-only lever (expand if too-easy).",
+  "qa_findings": "Review Accept (C0/H0/M1/L1): M1 README TBD -> filled (solution+anti-cheating; rates pending). L1 out-of-range labels raises ValueError vs sklearn tolerating (justified, bounded class space). Backward-compat already in pass_to_pass (no gap this time). Contamination NOT FOUND (LOW-with-caveat, fresh 4.4h)."
+}
