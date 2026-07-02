@@ -86,7 +86,8 @@ def _optimize(obj, objective, n_iter, seed):
                  ((objective,), {"max_iters": n_iter, "seed": seed}),
                  ((objective,), {"budget": n_iter, "seed": seed}),
                  ((objective, n_iter, seed), {}),
-                 ((objective, n_iter), {"seed": seed})]:
+                 ((objective, n_iter), {"seed": seed}),
+                 ((objective,), {})]:
         try:
             return f(*a, **k)
         except TypeError:
@@ -98,9 +99,16 @@ def _extract_best(r):
     if isinstance(r, tuple):
         return float(r[0])
     if isinstance(r, dict):
-        for k in ("best_config", "best", "best_x", "x", "argmax"):
+        # config-like keys ONLY (never score/loss/value -- that's the objective, not x)
+        for k in ("best_config", "best", "best_x", "best_lr", "x", "lr",
+                  "learning_rate", "config", "argmax"):
             if k in r:
                 return float(r[k])
+        raise AssertionError(
+            "optimize() dict has no recognized best-config key: %r" % (list(r.keys()),))
+    if isinstance(r, (list, np.ndarray)):
+        raise AssertionError(
+            "optimize() must return the best config found, not a bare history sequence")
     return float(r)
 
 

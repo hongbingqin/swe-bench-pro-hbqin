@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "current_step": 6,
+  "started_at": "2026-07-02T06:00:00Z",
+  "last_updated": "2026-07-02T07:00:00Z",
+  "answers": {
+    "problem_type": "New feature",
+    "repo_url": "https://github.com/pytorch/ignite",
+    "base_commit_choice": "HEAD",
+    "base_commit_hash": "d5208644ab5646ee250c3b5db08f5c5e9f128354"
+  },
+  "repo_url": "https://github.com/pytorch/ignite",
+  "repo_name": "ignite",
+  "base_commit": "d5208644ab5646ee250c3b5db08f5c5e9f128354",
+  "language": "python",
+  "task_dir": "ignite-fairness-subgroup-ratio",
+  "docker_built": true,
+  "instruction_written": true,
+  "solution_committed": true,
+  "tests_committed": true,
+  "qa_passed": false,
+  "models_tested": [],
+  "submitted": false,
+  "validation_passed": false,
+  "validation_attempts": 0,
+  "last_failure_phase": "",
+  "notes": "4th ignite task, LESS-MATURE module (fairness/, versionadded 0.5.4 - ignite's OWN framework, NOT a sklearn/fairlearn port -> dodges BOTH the too-easy-parity wall AND the novelty-recall wall). FEATURE: add `reduction` param to SubgroupDifference: 'difference' (max-min, current default = backward-compat) + new 'ratio' (min/max). Gap CONFIRMED absent at HEAD (grep: no ratio/reduction/mode param in ignite/metrics/fairness/*.py; SubgroupDifference.compute() hardcodes max-min). Thread through 2 subclasses: SubgroupAccuracyDifference, DemographicParityDifference. DIFFICULTY (r2score-multioutput profile, calibrated well): (a) tensor/per-class path uses per-index stacked.max(dim=0)-min(dim=0) -> ratio needs per-index min/max then WORST-CASE reduction (min ratio); (b) zero-denominator edge (max==0) needs defined convention; (c) backward-compat default='difference'; (d) invalid reduction -> ValueError. Reuses ignite-zerodiv:latest image + fixed harness (--color=no -o addopts=). RECIPE: real library code; subagent build+tests from first principles (not sklearn - ignite-internal spec); harness-validate (oracle reward=1/nop reward=0); fail_to_pass config-only lever; pass_to_pass = existing test_accuracy_difference.py + test_demographic_parity.py (backward-compat, default reduction unchanged) + new default tests; if 'not solvable' read artifacts/review.xml; expect flaky balance -> re-roll; instruction in own voice (provenance). AWAITING: user authors instruction.md (Step 3). Key design decisions user must lock: ratio=min/max semantics, zero-denominator convention (1.0 vs 0.0 vs nan), tensor worst-case = min ratio."
+}
