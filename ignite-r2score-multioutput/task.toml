@@ -2,6 +2,8 @@ schema_version = "1.1"
 
 [task]
 name = "codimango/ignite-r2score-multioutput"
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
 description = "Add scikit-learn-style multi-output support to PyTorch-Ignite's R2Score metric: accept y/y_pred of shape (N, K), accumulate per-target statistics, and add a `multioutput` parameter ('raw_values', 'uniform_average' (default), 'variance_weighted') matching sklearn.metrics.r2_score, while preserving the current scalar behavior for single-output inputs."
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "pytorch-ignite", "metrics", "r2-score", "regression", "multioutput", "scikit-learn-parity", "new-feature"]
