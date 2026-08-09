@@ -1,0 +1,48 @@
+schema_version = "1.1"
+
+[task]
+name = "codimango/skorch-wlm-bayesopt-scratch-skill-app"
+description = "Replace the exhaustive GridSearchCV hyperparameter search in skorch's word_language_model example with a from-scratch sequential model-based optimizer — a hand-written surrogate over observed (config, score) history plus an acquisition rule that proposes the next configuration — using only numpy/scipy (no BO library), capped by an explicit iteration budget. The task ships a quadratic-trust-region skill that defines the optimizer contract (bounds, predict, propose, trust-region constants)."
+authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
+keywords = ["python", "skorch", "pytorch", "hyperparameter-optimization", "bayesian-optimization", "surrogate-model", "from-scratch", "new-feature", "skills"]
+prompt_style = "implicit"
+format = "swe_bench_single_turn_skills"
+workstream = "swe_public_repo"
+
+[metadata]
+language = "python"
+tags = ["SWEBench-External", "SWEBench-Skills", "st:skill_application"]
+category_usecase = "compute_result"
+category_subdomain = "machine_learning"
+reward_type = "binary"
+workstream = "swe_public_repo"
+format = "swe_bench_single_turn_skills"
+sub_track = "skill_application"
+difficulty = "medium"
+
+[[skills]]
+name = "quadratic-trust-region-optimizer"
+path = "skills/quadratic-trust-region-optimizer/SKILL.md"
+source = "authored"
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048
+storage_mb = 10240
+gpus = 0
+allow_internet = true
+mcp_servers = []
+skills_dir = "skills"
+
+[verifier]
+timeout_sec = 600.0
+
+[agent]
+timeout_sec = 600.0
+
+[environment.env]
+
+[verifier.env]
+
+[solution.env]
