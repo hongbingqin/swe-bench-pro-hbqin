@@ -1,0 +1,37 @@
+schema_version = "1.1"
+
+[task]
+name = "codimango/skorch-wlm-bayesopt-scratch"
+description = "Replace the exhaustive GridSearchCV hyperparameter search in skorch's word_language_model example with a from-scratch sequential model-based (Bayesian-style) optimizer — a hand-written surrogate over observed (config, score) history plus an acquisition rule that proposes the next configuration — using only numpy/scipy (no Bayesian-optimization library), capped by an explicit iteration budget."
+authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
+keywords = ["python", "skorch", "pytorch", "hyperparameter-optimization", "bayesian-optimization", "surrogate-model", "from-scratch", "new-feature"]
+
+[metadata]
+language = "python"
+
+[verifier]
+timeout_sec = 600.0
+
+[agent]
+timeout_sec = 600.0
+
+[environment]
+build_timeout_sec = 600.0
+cpus = 1
+memory_mb = 2048
+storage_mb = 10240
+gpus = 0
+# Internet ON (platform default). The agents run inside the sandbox and need
+# network egress to reach the model API; allow_internet=false starved the opus
+# agent (no trials produced). "From scratch" is enforced behaviorally instead:
+# the discriminator tests reject any GP/library/random solution (a skopt/GP
+# surrogate fails the exact Nadaraya-Watson surrogate + acquisition checks), so
+# pip-installing a BO library does not help the agent pass.
+allow_internet = true
+mcp_servers = []
+
+[verifier.env]
+
+[environment.env]
+
+[solution.env]
