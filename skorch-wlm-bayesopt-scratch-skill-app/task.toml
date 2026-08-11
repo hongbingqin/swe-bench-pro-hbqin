@@ -24,6 +24,13 @@ difficulty = "medium"
 name = "quadratic-trust-region-optimizer"
 path = "skills/quadratic-trust-region-optimizer/SKILL.md"
 source = "authored"
+relationship = "relevant"
+
+[[skills]]
+name = "random-search-baseline"
+path = "skills/random-search-baseline/SKILL.md"
+source = "authored"
+relationship = "distractor"
 
 [environment]
 build_timeout_sec = 600.0
