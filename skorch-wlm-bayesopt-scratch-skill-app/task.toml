@@ -24,11 +24,23 @@ difficulty = "medium"
 name = "quadratic-trust-region-optimizer"
 path = "skills/quadratic-trust-region-optimizer/SKILL.md"
 source = "authored"
-relationship = "relevant"
+relationship = "essential"
 
 [[skills]]
 name = "random-search-baseline"
 path = "skills/random-search-baseline/SKILL.md"
+source = "authored"
+relationship = "distractor"
+
+[[skills]]
+name = "bayesian-optimization-basics"
+path = "skills/bayesian-optimization-basics/SKILL.md"
+source = "authored"
+relationship = "distractor"
+
+[[skills]]
+name = "grid-search-optimizer"
+path = "skills/grid-search-optimizer/SKILL.md"
 source = "authored"
 relationship = "distractor"
 

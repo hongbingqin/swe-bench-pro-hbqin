@@ -65,8 +65,21 @@ Local 5-trial ablation progression to Medium:
 |-------|--------------|------------|-------------------|--------|------------------|
 | quadratic-trust-region-optimizer | relevant | methodological | single | authored | none |
 | random-search-baseline | distractor | methodological | single | authored | easy |
+| bayesian-optimization-basics | distractor | conceptual | single | authored | easy |
+| grid-search-optimizer | distractor | methodological | single | authored | easy |
 
-Relevant skill defines bounded 1-D trust-region optimizer contract (predict least-squares quadratic, propose vertex clipped to trust region intersect bounds, endpoint fallback, seeded determinism, constants N_SEED=3, INIT_RADIUS_FRAC=0.25, SHRINK=0.5). Distractor is random search baseline without surrogate, not load-bearing (WITH trials never use it, WITHOUT removal doesn't help).
+Relevant skill defines bounded 1-D trust-region optimizer contract (predict least-squares quadratic, propose vertex clipped to trust region intersect bounds, endpoint fallback, seeded determinism, constants N_SEED=3, INIT_RADIUS_FRAC=0.25, SHRINK=0.5). Distractors are random search baseline, bayesian basics, grid search — not load-bearing (WITH trials never use distractors, WITHOUT removal doesn't help, tests discovery).
+
+## Summary classification table
+
+| Skill | Relationship | Skill Type | Skill Composition | Source | Distractor Level |
+|-------|--------------|------------|-------------------|--------|------------------|
+| quadratic-trust-region-optimizer | relevant | methodological | single | authored | none |
+| random-search-baseline | distractor | methodological | single | authored | easy |
+| bayesian-optimization-basics | distractor | conceptual | single | authored | easy |
+| grid-search-optimizer | distractor | methodological | single | authored | easy |
+
+3 distractors present (recommended 3+ ideal) for Skill Application discovery test.
 
 ### Trajectory commentary
 
@@ -80,14 +93,6 @@ Relevant skill defines bounded 1-D trust-region optimizer contract (predict leas
 **Avocado WITHOUT:** All runs 0/5 (4 RuntimeErrors + 1 fail). Fails `test_predict_is_least_squares_quadratic` or `test_propose_*` or `test_skorch_wiring_preserved` or `test_optimizer_constants` — without skill guesses linear/GP or wrong constants. Confirms load-bearing.
 
 **Opus WITH:** `01-53-10__8233fa` — 5 trials errored `UnknownApiError` (API gateway) after dual-stack fix, 0 used skill, suspect true. Previously `ECONNRESET` before fix. Needs retry when API recovers. Expected 1-4/5 Medium once API stable, given Avocado 2/5 Medium.
-
-## Summary classification table
-
-| Skill | Relationship | Skill Type | Skill Composition | Source | Distractor Level |
-|-------|--------------|------------|-------------------|--------|------------------|
-| quadratic-trust-region-optimizer | relevant | — (Skill Application, no classification restrictions) | atomic_skill | authored | — |
-
-No distractors required for Skill Application sub-track.
 
 ## Anti-Cheating Analysis
 
