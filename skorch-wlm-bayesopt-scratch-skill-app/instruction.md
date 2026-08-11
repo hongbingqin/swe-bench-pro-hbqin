@@ -1,11 +1,13 @@
-Replace GridSearchCV in examples/word_language_model/train.py with bounded 1-D search over learning rate with explicit bounds (lower, upper) and iteration cap. Keep single-config training under __main__ guard, module import-safe. Search logic must be importable as optimizer class constructed with bounds.
+Replace GridSearchCV in examples/word_language_model/train.py with bounded 1-D search over learning rate with explicit bounds and iteration budget.
 
-CLI must support --search-iter (default DEFAULT_SEARCH_ITERATIONS=16) for iteration cap, --lr-low (default 1.0) and --lr-high (default 40.0) for bounds, plus existing --seed, --data, --bptt, --batch_size, --epochs, --data-limit, --save, --no-cuda — all under if __name__ == '__main__' / main() guard, import-safe.
+Keep single-config training path under __main__ guard, module import-safe. Optimizer class constructed with bounds (lower, upper), with history-aware methods to predict score and propose next config within trust region around current best, shrinking radius on non-improvement, deterministic given seed, respecting bounds and budget.
 
-Training wiring must preserve original skorch setup: define my_train_split(ds, y) returning (ds, skorch.dataset.Dataset(corpus.valid[:200], y=None)), corpus = data.Corpus(args.data), ntokens = len(corpus.dictionary), torch.manual_seed(args.seed), device = 'cuda' if args.cuda else 'cpu', Net with train_split=my_train_split, iterator_train=data.Loader with iterator_train__device=device and iterator_train__bptt=args.bptt, iterator_valid=data.Loader with iterator_valid__device=device and iterator_valid__bptt=args.bptt, X = corpus.train[:args.data_limit].numpy() handling -1 as full data, callbacks [Checkpoint, ProgressBar, LRAnnealing] preserving original, LRAnnealing defined inside main.
+Preserve original skorch training wiring (train_split handling validation split, data loaders with bptt and device, corpus loading, seeding, callbacks) under main guard.
 
-Objective must do net.set_params(lr=float(x)) and evaluate via sklearn.model_selection.cross_val_score averaged over X (import cross_val_score inside main or top), handle data-limit via slicing + .numpy().
+Objective should set learning rate and evaluate via cross-validation over limited training data converted for sklearn compatibility, using cross_val_score.
 
-After search, set best lr, net.fit(X), net.save_params(f_params=args.save), print best lr and evaluation count. Define DEFAULT_SEARCH_ITERATIONS = 16 constant and remove GridSearchCV import/instantiation.
+After search, train best configuration and save via save_params with provided save path, print best and evaluation count.
 
-Optimizer trust constants: N_SEED=3 seed points, INIT_RADIUS_FRAC=0.25 of bound width, SHRINK=0.5 on non-improvement, RNG np.random.default_rng(seed).uniform(lo,hi) — same seed gives same result.
+Remove GridSearchCV import/instantiation, define iteration cap constant used as default for new CLI flag that controls budget, and add LR bounds flags with sensible defaults.
+
+Trust-region behavior: start with few random seed points uniform in bounds using seed for determinism, initial radius as fraction of bound width, shrink factor in (0,1) on non-improvement.
