@@ -64,20 +64,20 @@ Local 5-trial ablation progression to Medium:
 | Skill | Relationship | Skill Type | Skill Composition | Source | Distractor Level |
 |-------|--------------|------------|-------------------|--------|------------------|
 | quadratic-trust-region-optimizer | essential | domain_knowledge | atomic_skill | authored | n/a |
-| random-search-baseline | distractor | domain_knowledge | atomic_skill | authored | 2 |
-| bayesian-optimization-basics | distractor | domain_knowledge | atomic_skill | authored | 2 |
-| grid-search-optimizer | distractor | domain_knowledge | atomic_skill | authored | 1 |
+| random-search-baseline | distractor | n/a | n/a | authored | 2 |
+| bayesian-optimization-basics | distractor | n/a | n/a | authored | 2 |
+| grid-search-optimizer | distractor | n/a | n/a | authored | 1 |
 
-Relevant skill defines bounded 1-D trust-region optimizer contract (predict least-squares quadratic, propose vertex clipped to trust region intersect bounds, endpoint fallback, seeded determinism, constants N_SEED=3, INIT_RADIUS_FRAC=0.25, SHRINK=0.5). Distractors are random search baseline, bayesian basics, grid search — not load-bearing (WITH trials never use distractors, WITHOUT removal doesn't help, tests discovery).
+Relevant skill defines bounded 1-D trust-region optimizer contract (predict least-squares quadratic, propose trust region logic, seeded determinism, constants). Distractors are random search, bayesian basics, grid search — substantive real techniques but not relevant to this task, not load-bearing (WITH never uses distractors, WITHOUT removal doesn't help, tests discovery).
 
 ## Summary classification table
 
 | Skill | Relationship | Skill Type | Skill Composition | Source | Distractor Level |
 |-------|--------------|------------|-------------------|--------|------------------|
 | quadratic-trust-region-optimizer | essential | domain_knowledge | atomic_skill | authored | n/a |
-| random-search-baseline | distractor | domain_knowledge | atomic_skill | authored | 2 |
-| bayesian-optimization-basics | distractor | domain_knowledge | atomic_skill | authored | 2 |
-| grid-search-optimizer | distractor | domain_knowledge | atomic_skill | authored | 1 |
+| random-search-baseline | distractor | n/a | n/a | authored | 2 |
+| bayesian-optimization-basics | distractor | n/a | n/a | authored | 2 |
+| grid-search-optimizer | distractor | n/a | n/a | authored | 1 |
 
 3 distractors present (recommended 3+ ideal) for Skill Application discovery test.
 
