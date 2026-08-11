@@ -6,12 +6,19 @@ description = "Replace the exhaustive GridSearchCV hyperparameter search in skor
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "skorch", "pytorch", "hyperparameter-optimization", "bayesian-optimization", "surrogate-model", "from-scratch", "new-feature", "skills"]
 prompt_style = "implicit"
+task_complexity = "single_skill"
 format = "swe_bench_single_turn_skills"
 workstream = "swe_public_repo"
 
 [metadata]
 language = "python"
-tags = ["SWEBench-External", "SWEBench-Skills", "st:skill_application"]
+tags = [
+  "SWEBench-External",
+  "SWEBench-Skills",
+  "skill:quadratic-trust-region-optimizer",
+  "single_skill",
+  "st:skill_application",
+]
 category_usecase = "compute_result"
 category_subdomain = "machine_learning"
 reward_type = "binary"
@@ -25,24 +32,29 @@ name = "quadratic-trust-region-optimizer"
 path = "skills/quadratic-trust-region-optimizer/SKILL.md"
 source = "authored"
 relationship = "essential"
+skill_type = "domain_knowledge"
+skill_composition = "atomic_skill"
 
 [[skills]]
 name = "random-search-baseline"
 path = "skills/random-search-baseline/SKILL.md"
 source = "authored"
 relationship = "distractor"
+distractor_level = "2"
 
 [[skills]]
 name = "bayesian-optimization-basics"
 path = "skills/bayesian-optimization-basics/SKILL.md"
 source = "authored"
 relationship = "distractor"
+distractor_level = "2"
 
 [[skills]]
 name = "grid-search-optimizer"
 path = "skills/grid-search-optimizer/SKILL.md"
 source = "authored"
 relationship = "distractor"
+distractor_level = "1"
 
 [environment]
 build_timeout_sec = 600.0

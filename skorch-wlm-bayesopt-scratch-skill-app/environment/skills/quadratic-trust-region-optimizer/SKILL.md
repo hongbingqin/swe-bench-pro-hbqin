@@ -24,7 +24,7 @@ Module import-safe, __main__ guard, remove GridSearchCV import, optimizer class 
 
 ## Common mistakes
 
-GP/kernel/linear surrogate (fails test_predict_is_least_squares_quadratic), mutable hidden radius, snapping to grid, non-deterministic seeding, defining optimizer in new module.
+Mutable hidden radius, snapping to grid, non-deterministic seeding, defining optimizer in new module.
 
 
 
