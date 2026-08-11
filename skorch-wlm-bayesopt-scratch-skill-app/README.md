@@ -59,6 +59,18 @@ Local 5-trial ablation progression to Medium:
 | meta/avocado-5.14-code | **2/5 (0.40) Medium** | 0/5 (0.00) 4 RuntimeErrors | Yes (5/5) | 7.5 | WITH `01-55-53__5bbe5f-skills-with`, WITHOUT `...-without`. **Medium achieved** after fixing `_extract_best` to handle `tuple(dict, history)`. 2 passing trials used skill via FS scan, 3 failed `test_optimize_loop_bounded_and_deterministic` / constants. Δ=0.4, relevant_used_rate 1.0. |
 | claude-opus-4-8 | 0/5 (0.00) | 0/5 (0.00) | No (0/5) suspect | null | WITH `01-53-10__8233fa-skills-with` — `UnknownApiError` (API gateway), 5 errored, 0 used skill. Previously `ECONNRESET` before dual-stack fix. Needs retry. |
 
+<<<<<<< HEAD
+=======
+## Model Analysis
+
+| Skill | Relationship | Skill Type | Skill Composition | Source | Distractor Level |
+|-------|--------------|------------|-------------------|--------|------------------|
+| quadratic-trust-region-optimizer | relevant | methodological | single | authored | none |
+| random-search-baseline | distractor | methodological | single | authored | easy |
+
+Relevant skill defines bounded 1-D trust-region optimizer contract (predict least-squares quadratic, propose vertex clipped to trust region intersect bounds, endpoint fallback, seeded determinism, constants N_SEED=3, INIT_RADIUS_FRAC=0.25, SHRINK=0.5). Distractor is random search baseline without surrogate, not load-bearing (WITH trials never use it, WITHOUT removal doesn't help).
+
+>>>>>>> main
 ### Trajectory commentary
 
 **Avocado WITH progression:**

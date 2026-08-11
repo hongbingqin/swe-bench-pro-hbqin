@@ -1,0 +1,33 @@
+schema_version = "1.1"
+
+[task]
+name = "codimango/ignite-fairness-auto-subgroups"
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
+description = "Add automatic subgroup discovery to PyTorch-Ignite's fairness SubgroupMetric / SubgroupDifference: make the `groups` argument optional so that subgroups are discovered lazily from the `group_labels` seen during update(), creating a per-group base-metric on demand, while keeping the state_dict/load_state_dict round-trip and reset() correct for the dynamically-discovered group set."
+authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
+keywords = ["python", "pytorch-ignite", "metrics", "fairness", "subgroup", "dynamic-groups", "new-feature"]
+
+[metadata]
+language = "python"
+
+[verifier]
+timeout_sec = 600.0
+
+[agent]
+timeout_sec = 600.0
+
+[environment]
+build_timeout_sec = 900.0
+cpus = 1
+memory_mb = 4096
+storage_mb = 10240
+gpus = 0
+allow_internet = true
+mcp_servers = []
+
+[verifier.env]
+
+[environment.env]
+
+[solution.env]

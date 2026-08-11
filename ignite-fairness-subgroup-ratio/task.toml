@@ -2,6 +2,11 @@ schema_version = "1.1"
 
 [task]
 name = "codimango/ignite-fairness-subgroup-ratio"
+<<<<<<< HEAD
+=======
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
+>>>>>>> main
 description = "Add a `reduction` parameter to PyTorch-Ignite's fairness SubgroupDifference metric, supporting 'difference' (max-min, the current default behavior) and a new 'ratio' (min/max) reduction, threaded through SubgroupAccuracyDifference and DemographicParityDifference, with a defined zero-denominator convention and correct per-index worst-case handling for tensor-valued base metrics."
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "pytorch-ignite", "metrics", "fairness", "subgroup", "reduction", "ratio", "new-feature"]

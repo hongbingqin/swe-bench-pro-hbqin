@@ -2,6 +2,8 @@ schema_version = "1.1"
 
 [task]
 name = "codimango/ignite-precision-zero-division"
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
 description = "Add a scikit-learn-style `zero_division` option to PyTorch-Ignite's classification Precision/Recall (and Fbeta) metrics, so the value returned when a class has no predicted/actual samples is configurable (0, 1, or NaN) instead of the current implicit 0 (via an eps hack), across all average modes."
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "pytorch-ignite", "metrics", "precision", "recall", "zero-division", "scikit-learn-parity", "new-feature"]

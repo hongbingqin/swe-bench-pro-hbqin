@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "current_step": 3,
+  "started_at": "2026-07-02T15:30:00Z",
+  "last_updated": "2026-07-02T15:30:00Z",
+  "answers": {
+    "problem_type": "New feature",
+    "repo_url": "https://github.com/pytorch/ignite",
+    "base_commit_choice": "HEAD",
+    "base_commit_hash": "d5208644ab5646ee250c3b5db08f5c5e9f128354"
+  },
+  "repo_url": "https://github.com/pytorch/ignite",
+  "repo_name": "ignite",
+  "base_commit": "d5208644ab5646ee250c3b5db08f5c5e9f128354",
+  "language": "python",
+  "task_dir": "ignite-fairness-auto-subgroups",
+  "docker_built": false,
+  "solution_committed": false,
+  "tests_committed": false,
+  "qa_passed": false,
+  "models_tested": [],
+  "submitted": false,
+  "validation_passed": false,
+  "validation_attempts": 0,
+  "last_failure_phase": "",
+  "notes": "REDESIGN of ignite-fairness-subgroup-ratio (that one PASSED all 6 gates but was BLOCKED by Novelty HIGH: ratio=min/max IS the textbook disparate-impact/four-fifths metric -> named-formula recall wall; ignite-internal FRAMEWORK does not save you when the FEATURE itself is a named metric). NEW angle (Candidate A, non-formula + cross-file to beat Algorithm-Memorization HIGH): AUTO-DISCOVER subgroups. Gap CONFIRMED at HEAD: `groups` is REQUIRED; update() silently DROPS any group_labels value not pre-listed (base.py:44 loops self._metrics only); load_state_dict (base.py:60) assumes the group set is known at construction. FEATURE: make `groups` optional -> discover subgroups lazily from group_labels during update(), deep-copy base_metric per new group; keep reset()/compute()/state_dict/load_state_dict correct for the dynamic set (subtle cross-file edge = state_dict round-trip with discovered groups). Files: ignite/metrics/fairness/base.py (_SubgroupBase, SubgroupMetric, SubgroupDifference) + subclasses accuracy_difference.py/demographic_parity.py. HARNESS FIXES carried from ratio-task failures: (1) Structural Missing-README -> add README.md; (2) Structural Git-History-Leak vs Eval-GT(TBR) tension -> ratio used fresh-single-commit which stripped base_commit and BROKE Eval-GT harbor_oracle (gt_resolved=0; harbor needs base_commit to reset). NEW Dockerfile uses DESCENDANT-STRIP (detach at base, delete all refs+remote, gc, rm .github) -> keeps base_commit VALID (harbor reset works) AND removes leak (git log --all shows only base+ancestors, no later fix). CAVEAT: `git clean -fd` in before_repo_set_cmd can delete the untracked verifier test file depending on harbor step order -> awaiting Eval-GT debug log to confirm harbor flow before finalizing before_repo_set_cmd."
+}

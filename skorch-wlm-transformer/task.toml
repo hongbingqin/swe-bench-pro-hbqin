@@ -2,6 +2,8 @@ schema_version = "1.1"
 
 [task]
 name = "codimango/skorch-wlm-transformer"
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
 description = "Add a Transformer-based language model as a selectable option in skorch's word_language_model example (examples/word_language_model), alongside the existing RNN: a new model class wired into the training script and the custom Net (which is built around RNN hidden state), using ALiBi (attention-with-linear-biases) positional bias rather than sinusoidal positional encoding."
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "skorch", "pytorch", "language-model", "transformer", "alibi", "new-feature"]

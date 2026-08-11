@@ -2,6 +2,8 @@ schema_version = "1.1"
 
 [task]
 name = "codimango/ignite-precision-labels"
+format = "swe_bench_single_turn"
+workstream = "swe_public_repo"
 description = "Add a scikit-learn-style `labels` parameter to PyTorch-Ignite's classification Precision/Recall (and Fbeta) metrics, restricting (and reordering) the set of classes/labels included in the per-class output and in the macro/weighted/None aggregations, matching sklearn's precision_score/recall_score `labels` semantics."
 authors = [{ name = "Hongbing Qin", email = "hbqin@meta.com" }]
 keywords = ["python", "pytorch-ignite", "metrics", "precision", "recall", "labels", "scikit-learn-parity", "new-feature"]
