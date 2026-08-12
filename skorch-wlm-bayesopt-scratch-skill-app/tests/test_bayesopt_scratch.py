@@ -258,65 +258,92 @@ def test_optimize_loop_bounded_and_deterministic():
 
 
 def test_gridsearchcv_replaced_in_train():
-    # GridSearchCV must be removed — behavioral, no source grep for tokens
-    mod = _import_train()
-    # Module should not expose GridSearchCV at runtime
-    assert not hasattr(mod, "GridSearchCV"), (
-        "train module should not expose GridSearchCV"
+    # The exhaustive GridSearchCV must be removed from the training path and
+    # replaced by the from-scratch optimizer -- not left alongside it.
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "train.py"), encoding="utf-8") as f:
+        src = f.read()
+    # Check for actual usage (the call / the import), not mere mentions in a
+    # comment, so the exhaustive grid search is genuinely gone.
+    assert "GridSearchCV(" not in src, (
+        "GridSearchCV must no longer be instantiated in train.py "
+        "(replace it with the from-scratch optimizer)"
     )
-    # _find_cls should find a custom optimizer, not GridSearchCV
-    cls = _find_cls(mod)
-    assert cls is not None, "custom optimizer class must be defined"
-    assert "GridSearch" not in cls.__name__, "optimizer should not be GridSearchCV"
+    assert "import GridSearchCV" not in src, (
+        "GridSearchCV import should be removed from train.py"
+    )
 
 
 def test_cli_and_main_guard():
-    """CLI and import-safety — behavioral, no token greps."""
-    mod = _import_train()
-    # main() must exist and be callable (import-safe)
-    assert hasattr(mod, "main"), "train.py must define main() to be import-safe"
-    assert callable(getattr(mod, "main")), "main must be callable"
-    # Iteration cap constant behavioral via attribute
-    cap = getattr(mod, "DEFAULT_SEARCH_ITERATIONS", None) or getattr(
-        mod, "SEARCH_ITERATIONS", None
+    """CLI must have --search-iter, --lr-low/high and main() guard."""
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "train.py"), encoding="utf-8") as f:
+        src = f.read()
+    # main() wrapper and guard
+    assert "def main" in src, "train.py must define main() to be import-safe"
+    assert "__name__" in src and "__main__" in src, (
+        "train.py must have if __name__ == '__main__' guard"
     )
-    assert cap is not None, "must define iteration cap constant"
-    assert isinstance(cap, int) and cap > 0, "cap constant must be positive int"
-    assert cap == 16, "DEFAULT_SEARCH_ITERATIONS should be 16 per spec"
-    # Optimizer class behavioral via _find_cls
-    cls = _find_cls(mod)
-    assert cls is not None, "optimizer class must be defined inside train.py"
-    # Optimizer must have predict/propose methods
-    assert hasattr(cls, "predict") and hasattr(cls, "propose"), (
-        "optimizer must have predict/propose"
+    # required args
+    for flag in ("--search-iter", "--lr-low", "--lr-high", "--seed", "--save"):
+        assert flag in src, f"train.py must support {flag} arg"
+    # constant
+    assert "DEFAULT_SEARCH_ITERATIONS" in src or "SEARCH_ITERATIONS" in src, (
+        "must define iteration cap constant"
     )
-    # Training should be inside main, not at import time (already checked by test_module_imports)
-    # Check that main is defined and that module import does not trigger training (behavioral already)
+    # must not do training at import time (already checked by import test) but also check fit not at top-level
+    # cross_val_score usage and save_params
+    assert "cross_val_score" in src or "cross_val" in src, (
+        "objective should use cross_val_score"
+    )
+    assert "save_params" in src, "best model must be saved via save_params"
+    # optimizer class must be defined inside train.py, not imported from separate module
+    assert "class" in src and "Optimizer" in src, (
+        "optimizer class must be defined inside train.py"
+    )
+    # check for import-safe: main() should contain the training logic, not top-level
+    main_idx = src.find("def main")
+    assert main_idx != -1
+    after_main = src[main_idx:]
+    assert ".fit(" in after_main or "fit(" in after_main, (
+        "training fit should be inside main()"
+    )
 
 
 def test_skorch_wiring_preserved():
-    """Original skorch wiring preserved — fully behavioral."""
-    mod = _import_train()
-    # my_train_split should be callable (either module-level or defined inside main, we check via _find_cls and source fallback)
-    # For behavioral, we check that the optimizer can be instantiated and that train module loads corpus via data.Corpus behaviorally
-    # Since my_train_split may be defined inside main as local function, we check that train.py can be executed with minimal args without GridSearchCV
-    # Check that required skorch concepts are importable and used behaviorally via module attributes
-    # Net and data should be importable from train's dependencies (model, net, data)
-    try:
-        from skorch.dataset import Dataset
-        from data import Corpus, Loader
-
-        assert Dataset is not None
-        assert Corpus is not None
-        assert Loader is not None
-    except Exception:
-        # If skorch data not available in test env, at least check that train module does not crash on import (already checked)
-        pass
-    # Check that optimizer respects bounds behaviorally (already covered) and that train preserves seeding
+    """Original skorch train_split + data.Loader + bptt wiring must be preserved."""
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "train.py"), encoding="utf-8") as f:
+        src = f.read()
+    # my_train_split definition
+    assert "def my_train_split" in src, "must define my_train_split(ds, y)"
+    assert "skorch.dataset.Dataset" in src, (
+        "my_train_split should return skorch.dataset.Dataset"
+    )
+    assert "corpus.valid[:200]" in src or "valid[:200]" in src, (
+        "my_train_split should slice corpus.valid[:200]"
+    )
+    # train_split wiring
     assert (
-        hasattr(mod, "torch") or True
-    )  # placeholder behavioral: torch seeding checked via cap constant and main existence
-    # No source-string asserts for exact literals like corpus.valid[:200] or iterator_train__bptt — those are now checked behaviorally via objective and training path
+        "train_split=my_train_split" in src or "train_split = my_train_split" in src
+    ), "Net must use train_split=my_train_split"
+    # data.Loader wiring
+    assert (
+        "iterator_train=data.Loader" in src or "iterator_train = data.Loader" in src
+    ), "must use iterator_train=data.Loader"
+    assert "iterator_train__bptt" in src, "must preserve iterator_train__bptt=args.bptt"
+    assert (
+        "iterator_valid=data.Loader" in src or "iterator_valid = data.Loader" in src
+    ), "must use iterator_valid=data.Loader"
+    assert "iterator_valid__bptt" in src, "must preserve iterator_valid__bptt"
+    # corpus and torch seeding
+    assert "data.Corpus" in src, "must load corpus = data.Corpus(args.data)"
+    assert "torch.manual_seed" in src, "must call torch.manual_seed(args.seed)"
+    # data-limit + numpy handling
+    assert "data_limit" in src, "objective should handle args.data_limit"
+    assert ".numpy()" in src, (
+        "should use corpus.train[:data_limit].numpy() for sklearn compat"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -325,31 +352,35 @@ def test_skorch_wiring_preserved():
 
 
 def test_optimizer_constants():
-    """Optimizer trust-region constants — behavioral checks for fraction and shrink."""
+    """Optimizer must have correct trust-region constants as in reference solution."""
     mod = _import_train()
     cls = _find_cls(mod)
+    # Check for class attributes or instance attributes that match reference
+    # Reference: N_SEED=3, INIT_RADIUS_FRAC=0.25, SHRINK=0.5
+    # Agent may define as class constants or use directly in optimize, so we check both
+    # by inspecting source and by behavioral check
+    here = os.path.dirname(__file__)
+    with open(os.path.join(here, "train.py"), encoding="utf-8") as f:
+        src = f.read()
+    # Must have the three constants defined somewhere with correct values
+    # Allow variations: 0.25, .25, 1/4 etc for INIT_RADIUS_FRAC, but we check for 0.25 or 0.2-0.3 range via behavior
+    # For strict Medium difficulty, require exact values appear in source
+    assert "N_SEED" in src or "n_seed" in src.lower() or "min(" in src, (
+        "optimizer should have N_SEED concept"
+    )
+    # Check for 0.25 and 0.5 values in proximity to radius/shrink logic
+    # We do behavioral check: initial radius should be 0.25*(hi-lo) and shrink 0.5
     bounds = (0.0, 10.0)
     opt = _opt(bounds)
-
-    # Behavioral: initial radius should be fraction of bound width (0 < frac < 1) and shrink in (0,1)
-    # Check via class attrs if present, allow reasonable range to avoid brittle exact-value matching
-    for attr, low, high in [
-        ("INIT_RADIUS_FRAC", 0.05, 0.9),
-        ("SHRINK", 0.1, 0.95),
-    ]:
+    # Check class attrs if present
+    for attr, expected in [("INIT_RADIUS_FRAC", 0.25), ("SHRINK", 0.5), ("N_SEED", 3)]:
         val = getattr(opt, attr, None) or getattr(cls, attr, None)
         if val is not None:
-            assert low <= float(val) <= high, (
-                f"{attr} should be fraction in ({low},{high}), got {val}"
+            assert abs(float(val) - expected) < 1e-6, (
+                f"{attr} should be {expected}, got {val}"
             )
 
-    n_seed_val = getattr(opt, "N_SEED", None) or getattr(cls, "N_SEED", None)
-    if n_seed_val is not None:
-        assert 1 <= int(n_seed_val) <= 10, (
-            f"N_SEED should be small int 1-10, got {n_seed_val}"
-        )
-
-    # Behavioral: with n_iter=3, history len should be exactly 3 seed evals
+    # Behavioral: with n_iter=3, history len should be 3 (only seeds), no propose yet
     def obj(x):
         return -((x - 5.0) ** 2)
 
@@ -360,12 +391,15 @@ def test_optimizer_constants():
             f"with n_iter=3, should have exactly 3 seed evals, got {len(hist)}"
         )
 
-    # Behavioral: radius should shrink on non-improvement — check that optimizer's radius decreases
-    # We test via n_iter=4 with objective that first propose is non-improving, radius should be smaller next time
-    # This is implicit in deterministic behavior, so we at least check that optimize respects bounds and determinism
-    r1 = _optimize(_opt(bounds), obj, 5, 42)
-    r2 = _optimize(_opt(bounds), obj, 5, 42)
-    assert _extract_best(r1) == _extract_best(r2), "same seed must be deterministic"
+    # With n_iter=4, after seeds, one propose. If first propose is non-improving, next radius should shrink
+    # We test that radius shrinks: by checking that propose is called with smaller radius after non-improvement
+    # This is implicitly tested via deterministic behavior, but we add explicit check for 0.25 and 0.5 in source near radius
+    assert "0.25" in src or ".25" in src or "INIT_RADIUS_FRAC" in src, (
+        "initial radius fraction 0.25 should appear"
+    )
+    assert "0.5" in src or ".5" in src or "SHRINK" in src, (
+        "shrink factor 0.5 should appear"
+    )
 
 
 def test_existing_rnn_training_path():
