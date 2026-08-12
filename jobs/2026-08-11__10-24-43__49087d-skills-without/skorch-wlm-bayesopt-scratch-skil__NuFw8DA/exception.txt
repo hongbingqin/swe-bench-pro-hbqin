@@ -1,0 +1,23 @@
+Traceback (most recent call last):
+  File "/Users/hbqin/.local/share/uv/tools/codimango/lib/python3.12/site-packages/harbor/trial/trial.py", line 406, in run
+    await self._prepare()
+  File "/Users/hbqin/.local/share/uv/tools/codimango/lib/python3.12/site-packages/harbor/trial/trial.py", line 440, in _prepare
+    await self._setup_agent_environment()
+  File "/Users/hbqin/.local/share/uv/tools/codimango/lib/python3.12/site-packages/harbor/trial/trial.py", line 1576, in _setup_agent_environment
+    await self._start_agent_environment()
+  File "/Users/hbqin/.local/share/uv/tools/codimango/lib/python3.12/site-packages/harbor/trial/trial.py", line 1582, in _start_agent_environment
+    await asyncio.wait_for(
+  File "/usr/local/fbcode/platform010/Python3.12.framework/Versions/3.12/lib/python3.12/asyncio/tasks.py", line 526, in wait_for
+    return await fut
+           ^^^^^^^^^
+  File "/Users/hbqin/.local/share/uv/tools/codimango/lib/python3.12/site-packages/harbor/environments/docker/docker.py", line 890, in start
+    async with lock:
+               ^^^^
+  File "/usr/local/fbcode/platform010/Python3.12.framework/Versions/3.12/lib/python3.12/asyncio/locks.py", line 14, in __aenter__
+    await self.acquire()
+  File "/usr/local/fbcode/platform010/Python3.12.framework/Versions/3.12/lib/python3.12/asyncio/locks.py", line 105, in acquire
+    fut = self._get_loop().create_future()
+          ^^^^^^^^^^^^^^^^
+  File "/usr/local/fbcode/platform010/Python3.12.framework/Versions/3.12/lib/python3.12/asyncio/mixins.py", line 20, in _get_loop
+    raise RuntimeError(f'{self!r} is bound to a different event loop')
+RuntimeError: <asyncio.locks.Lock object at 0x1085d94f0 [locked]> is bound to a different event loop

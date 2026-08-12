@@ -1,0 +1,7 @@
+Applying test_patch from config.json
+Required tests: 11
+Passed tests: 4
+Required tests that passed: 4
+
+RESULT: FAILED
+Missing tests: ['examples/word_language_model/test_bayesopt_scratch.py::test_cli_and_main_guard', 'examples/word_language_model/test_bayesopt_scratch.py::test_predict_is_least_squares_quadratic', 'examples/word_language_model/test_bayesopt_scratch.py::test_optimize_loop_bounded_and_deterministic', 'examples/word_language_model/test_bayesopt_scratch.py::test_propose_vertex_when_concave', 'examples/word_language_model/test_bayesopt_scratch.py::test_optimizer_constants', 'examples/word_language_model/test_bayesopt_scratch.py::test_propose_clips_to_trust_region', 'examples/word_language_model/test_bayesopt_scratch.py::test_propose_convex_fallback_to_endpoint']

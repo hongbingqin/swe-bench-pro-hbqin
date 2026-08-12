@@ -1,0 +1,2 @@
+Trial skorch-wlm-bayesopt-scratch-skil__uNut6q4 failed: <asyncio.locks.Lock object at 0x1085d94f0 [locked]> is bound to a different event loop
+Collecting main service artifacts

@@ -1,0 +1,48 @@
+{
+  "tests": [
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_module_imports_without_training",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_predict_is_least_squares_quadratic",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_propose_vertex_when_concave",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_propose_clips_to_trust_region",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_propose_convex_fallback_to_endpoint",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_optimize_loop_bounded_and_deterministic",
+      "status": "FAILED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_gridsearchcv_replaced_in_train",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_cli_and_main_guard",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_skorch_wiring_preserved",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_optimizer_constants",
+      "status": "PASSED"
+    },
+    {
+      "name": "examples/word_language_model/test_bayesopt_scratch.py::test_existing_rnn_training_path",
+      "status": "PASSED"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+    "id": "f7ad85f6-da29-45dd-abbf-2614fa232ade",
+    "started_at": "2026-08-11T10:24:43.601609",
+    "updated_at": "2026-08-11T10:27:22.513466",
+    "finished_at": "2026-08-11T10:27:22.513466",
+    "n_total_trials": 5,
+    "stats": {
+        "n_completed_trials": 5,
+        "n_errored_trials": 0,
+        "n_running_trials": 0,
+        "n_pending_trials": 0,
+        "n_cancelled_trials": 0,
+        "n_retries": 0,
+        "evals": {
+            "metacode__avocado-5.14-code__adhoc": {
+                "n_trials": 5,
+                "n_errors": 0,
+                "metrics": [
+                    {
+                        "mean": 0.6
+                    }
+                ],
+                "pass_at_k": {
+                    "2": 0.9,
+                    "4": 1.0,
+                    "5": 1.0
+                },
+                "reward_stats": {
+                    "reward": {
+                        "1.0": [
+                            "skorch-wlm-bayesopt-scratch-skil__Z6LE5nn",
+                            "skorch-wlm-bayesopt-scratch-skil__sXJi264",
+                            "skorch-wlm-bayesopt-scratch-skil__Ln2fH9b"
+                        ],
+                        "0.0": [
+                            "skorch-wlm-bayesopt-scratch-skil__Hc6jV2f",
+                            "skorch-wlm-bayesopt-scratch-skil__HntxbbW"
+                        ]
+                    }
+                },
+                "exception_stats": {}
+            }
+        },
+        "n_input_tokens": 1198010,
+        "n_cache_tokens": 1126764,
+        "n_output_tokens": 17268,
+        "cost_usd": null
+    }
+}

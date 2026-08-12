@@ -1,0 +1,19 @@
+{
+    "task": {
+        "path": "skorch-wlm-bayesopt-scratch-skill-app"
+    },
+    "trial_name": "skorch-wlm-bayesopt-scratch-skil__Hc6jV2f",
+    "trials_dir": "/Users/hbqin/AAI/swe-bench-pro-hbqin/jobs/2026-08-11__10-24-43__49087d-skills-with",
+    "agent": {
+        "name": "metacode",
+        "model_name": "meta/avocado-5.14-code"
+    },
+    "environment": {
+        "type": "docker",
+        "extra_docker_compose": [
+            "/Users/hbqin/AAI/swe-bench-pro-hbqin/jobs/2026-08-11__10-24-43__49087d-skills-with/docker-compose-host-network.yaml"
+        ],
+        "kwargs": {}
+    },
+    "job_id": "f7ad85f6-da29-45dd-abbf-2614fa232ade"
+}

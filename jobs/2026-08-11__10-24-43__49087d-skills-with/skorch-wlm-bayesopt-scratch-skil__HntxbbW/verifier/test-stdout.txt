@@ -1,0 +1,7 @@
+Applying test_patch from config.json
+Required tests: 11
+Passed tests: 10
+Required tests that passed: 10
+
+RESULT: FAILED
+Missing tests: ['examples/word_language_model/test_bayesopt_scratch.py::test_optimize_loop_bounded_and_deterministic']

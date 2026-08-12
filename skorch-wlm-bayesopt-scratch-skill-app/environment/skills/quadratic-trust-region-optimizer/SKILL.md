@@ -14,12 +14,15 @@ need history-driven predict/propose callable deterministically
 
 ## How to apply it
 
-Class: QuadraticTrustRegionOptimizer, constructed with bounds tuple (lo, hi)
-predict(history, x): least-squares degree-2 polynomial fit to all points in history, return value of fitted quadratic at x (deterministic, no GP/kernel/linear)
-propose(history, radius): current best is argmax score over history, feasible interval is trust region around best intersected with bounds ([max(lo, best-radius), min(hi, best+radius)]), if fitted quadratic is concave (has interior maximum) propose its vertex clipped to feasible, else propose feasible endpoint with higher predicted value (tie -> lower)
-optimize(objective, n_iter, seed): start with few seed points drawn uniformly at random from bounds using provided seed for determinism, initial trust radius is fraction of bound width, shrink radius on non-improving iteration, return best config and history, same seed gives same result, propose continuous values not snapped to grid
+Construct optimizer with bounds tuple (lo, hi), e.g., bounds handling for 1-D search.
 
-Module import-safe, __main__ guard, remove GridSearchCV import, optimizer class defined inside train.py not in separate module
+predict(history, x): fit a surrogate to history — use least-squares degree-2 polynomial to all observed points, return fitted value at x (deterministic, no GP/kernel/linear, no snapping to grid).
+
+propose(history, radius): identify current best (argmax score), build feasible interval as trust region around best intersected with bounds, if surrogate suggests an interior optimum (concave) propose it clipped to feasible, otherwise propose a feasible endpoint chosen by predicted value.
+
+optimize(objective, n_iter, seed): begin with few seed evaluations sampled uniformly from bounds using seed for determinism, start with trust radius as fraction of bound width, shrink radius when iteration does not improve, return best found and full history, deterministic given seed.
+
+Keep training module import-safe under __main__ guard and remove GridSearchCV import.
 
 
 ## Common mistakes

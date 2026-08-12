@@ -1,0 +1,43 @@
+{
+    "job_name": "2026-08-11__10-24-43__49087d-skills-without",
+    "jobs_dir": "/Users/hbqin/AAI/swe-bench-pro-hbqin/jobs",
+    "n_attempts": 5,
+    "n_concurrent_trials": 5,
+    "retry": {
+        "max_retries": 3,
+        "include_exceptions": [
+            "DaytonaRateLimitError",
+            "AgentSetupTimeoutError",
+            "EnvironmentStartTimeoutError",
+            "AgentInstallError",
+            "DaytonaError"
+        ],
+        "wait_multiplier": 2.0,
+        "min_wait_sec": 10.0,
+        "max_wait_sec": 120.0
+    },
+    "environment": {
+        "type": "docker",
+        "extra_docker_compose": [
+            "/Users/hbqin/AAI/swe-bench-pro-hbqin/jobs/2026-08-11__10-24-43__49087d-skills-without/docker-compose-host-network.yaml"
+        ],
+        "kwargs": {}
+    },
+    "agents": [
+        {
+            "name": "metacode",
+            "model_name": "meta/avocado-5.14-code",
+            "skills_remove": [
+                "quadratic-trust-region-optimizer",
+                "random-search-baseline",
+                "bayesian-optimization-basics",
+                "grid-search-optimizer"
+            ]
+        }
+    ],
+    "tasks": [
+        {
+            "path": "skorch-wlm-bayesopt-scratch-skill-app"
+        }
+    ]
+}

@@ -1,0 +1,66 @@
+{
+  "relevant_skills": [
+    "quadratic-trust-region-optimizer"
+  ],
+  "distractors": [
+    "random-search-baseline",
+    "bayesian-optimization-basics",
+    "grid-search-optimizer"
+  ],
+  "distractors_kept": false,
+  "with": {
+    "n_trials": 5,
+    "n_passed": 3,
+    "pass_rate": 0.6,
+    "relevant_used": 5,
+    "distractor_used": 0,
+    "avg_tool_calls_passing": 8.0
+  },
+  "without": {
+    "n_trials": 5,
+    "n_passed": 0,
+    "pass_rate": 0.0,
+    "avg_tool_calls_passing": null
+  },
+  "delta": 0.6,
+  "relevant_used_rate": 1.0,
+  "distractor_used_rate": 0.0,
+  "skill_breakdown": [
+    {
+      "skill": "quadratic-trust-region-optimizer",
+      "relationship": "relevant",
+      "with_used": 5,
+      "without_used": 0,
+      "without_removed": 1
+    },
+    {
+      "skill": "random-search-baseline",
+      "relationship": "distractor",
+      "with_used": 0,
+      "without_used": 0,
+      "without_removed": 1
+    },
+    {
+      "skill": "bayesian-optimization-basics",
+      "relationship": "distractor",
+      "with_used": 0,
+      "without_used": 0,
+      "without_removed": 1
+    },
+    {
+      "skill": "grid-search-optimizer",
+      "relationship": "distractor",
+      "with_used": 0,
+      "without_used": 0,
+      "without_removed": 1
+    }
+  ],
+  "without_leaks": 0,
+  "suspect": false,
+  "warnings": [],
+  "task": "skorch-wlm-bayesopt-scratch-skill-app",
+  "agent": "metacode",
+  "model": "meta/avocado-5.14-code",
+  "with_job": "2026-08-11__10-24-43__49087d-skills-with",
+  "without_job": "2026-08-11__10-24-43__49087d-skills-without"
+}
